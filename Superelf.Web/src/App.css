@@ -1,0 +1,293 @@
+/* Bootstrap Icons */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css");
+
+/* Custom Variables - Modern Dark Theme */
+:root {
+  /* Primary brand color - vibrant blue */
+  --bs-primary: #4895ef;
+  --bs-primary-rgb: 72, 149, 239;
+  
+  /* Secondary color - deep purple */
+  --bs-secondary: #7b2cbf;
+  --bs-secondary-rgb: 123, 44, 191;
+  
+  /* Success color - teal */
+  --bs-success: #2ec4b6;
+  --bs-success-rgb: 46, 196, 182;
+  
+  /* Info color - light blue */
+  --bs-info: #56cfe1;
+  --bs-info-rgb: 86, 207, 225;
+  
+  /* Warning color - amber */
+  --bs-warning: #f9c74f;
+  --bs-warning-rgb: 249, 199, 79;
+  
+  /* Danger color - vibrant red */
+  --bs-danger: #e63946;
+  --bs-danger-rgb: 230, 57, 70;
+  
+  /* Light color - darker for dark theme */
+  --bs-light: #343a40;
+  --bs-light-rgb: 52, 58, 64;
+  
+  /* Dark color - lighter for dark theme */
+  --bs-dark: #f8f9fa;
+  --bs-dark-rgb: 248, 249, 250;
+  
+  /* Dark theme specific colors */
+  --bs-body-bg: #121212;
+  --bs-body-color: #e9ecef;
+  --bs-body-bg-rgb: 18, 18, 18;
+  --bs-body-color-rgb: 233, 236, 239;
+  --bs-card-bg: #1e1e1e;
+  --bs-border-color: #343a40;
+  
+  /* Add dark mode to bootstrap */
+  color-scheme: dark;
+}
+
+/* Global Styles */
+body {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+main {
+  min-height: calc(100vh - 56px - 56px); /* Subtract navbar and footer heights */
+  padding: 1rem 0;
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--bs-card-bg);
+  border-color: var(--bs-border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+}
+
+.card-header, .card-footer {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--bs-border-color);
+}
+
+/* Form Styles */
+.form-control, .form-select {
+  background-color: #2b2b2b;
+  border-color: #444;
+  color: var(--bs-body-color);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: #2b2b2b;
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+  color: var(--bs-body-color);
+}
+
+/* Button Overrides */
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.btn-primary:hover {
+  background-color: #3d7ecc;
+  border-color: #3d7ecc;
+}
+
+.btn-outline-light {
+  color: #e9ecef;
+  border-color: #6c757d;
+}
+
+.btn-outline-light:hover {
+  background-color: #343a40;
+  color: #ffffff;
+  border-color: #6c757d;
+}
+
+/* Table Styles */
+.table {
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--bs-body-color);
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-body-color);
+}
+
+/* Navbar Styles */
+.navbar-dark {
+  background-color: #1a1a1a !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* List Group Styles */
+.list-group-item {
+  background-color: var(--bs-card-bg);
+  border-color: var(--bs-border-color);
+  color: var(--bs-body-color);
+}
+
+/* Modal Styles */
+.modal-content {
+  background-color: var(--bs-card-bg);
+  border-color: var(--bs-border-color);
+  border-radius: 0.5rem;
+}
+
+.modal-header, .modal-footer {
+  border-color: var(--bs-border-color);
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #1a1a1a 0%, #303030 100%);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+}
+
+/* Modern UI Elements */
+.badge {
+  padding: 0.5em 0.8em;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.btn {
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.75rem;
+}
+
+/* Subtle Hover Effects */
+a:not(.btn):hover,
+.nav-link:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Glass Morphism Effect */
+.card.glass {
+  background: rgba(30, 30, 30, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Pill Badges */
+.badge-pill {
+  border-radius: 50rem;
+}
+
+/* Modern Avatar */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bs-primary);
+  color: white;
+  font-weight: bold;
+}
+
+/* Progress Bar */
+.progress {
+  height: 0.6rem;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar {
+  background-color: var(--bs-primary);
+}
+
+/* Custom Switch */
+.form-switch .form-check-input {
+  background-color: #444;
+  border-color: #666;
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button Styles */
+.btn {
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+}
+
+/* Navbar Styles */
+.navbar-brand {
+  font-size: 1.5rem;
+}
+
+/* Custom Utilities */
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+}
+
+/* Animation */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

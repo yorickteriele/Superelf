@@ -1,0 +1,582 @@
+/* Football Field Selection Styles */
+.selection-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  min-height: 100vh;
+}
+
+.field-container {
+  position: relative;
+  width: 100%;
+  margin: 20px auto;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.football-field {
+  background: linear-gradient(to bottom, #3a7e30, #2c6823);
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  position: relative;
+  height: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  transition: all 0.3s ease;
+}
+
+/* Field markings */
+.football-field:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.football-field:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Field areas */
+.goal-area {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 10%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-bottom: none;
+}
+
+.goal-area.top {
+  top: 0;
+}
+
+.goal-area.bottom {
+  bottom: 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: none;
+}
+
+/* Position rows */
+.position-row {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+/* Player slot */
+.player-slot {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-slot:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.player-slot.selected {
+  border: 2px solid #fff;
+}
+
+.player-slot.joker {
+  box-shadow: 0 0 15px gold;
+  border: 2px solid gold;
+}
+
+.player-slot.joker:before {
+  content: '★';
+  position: absolute;
+  top: 0;
+  right: 5px;
+  color: gold;
+  font-size: 16px;
+}
+
+.player-slot.readonly {
+  opacity: 0.8;
+  cursor: default !important;
+}
+
+.player-slot.readonly:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.player-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #333;
+}
+
+.player-name {
+  margin-top: 5px;
+  font-size: 12px;
+  text-align: center;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  position: absolute;
+  bottom: -22px;
+  width: 100%;
+  font-weight: bold;
+}
+
+/* Club colors */
+.player-slot[data-club] {
+  position: relative;
+}
+
+.player-slot[data-club]:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+}
+
+/* Reserve section */
+.reserves-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.reserve-position {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.reserve-title {
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+/* Status section */
+.selection-status {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-outline-light {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+.btn-warning:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.status-info {
+  display: flex;
+  gap: 30px;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.status-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.progress-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  width: 100%;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #3a7e30, #4CAF50);
+  transition: width 0.3s ease;
+}
+
+/* Modal styling */
+.player-selection-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background-color: #222;
+  width: 90%;
+  max-width: 900px;
+  max-height: 80vh;
+  border-radius: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.player-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.player-table th,
+.player-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.player-table th {
+  background-color: #333;
+  font-weight: bold;
+  color: #fff;
+}
+
+.player-table tr:hover {
+  background-color: #333;
+}
+
+.player-row {
+  cursor: pointer;
+}
+
+.player-row.selected {
+  background-color: rgba(74, 144, 226, 0.3);
+}
+
+.joker-toggle {
+  background-color: gold;
+  color: #333;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.joker-toggle.active {
+  background-color: #FFC107;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+}
+
+.submit-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.submit-button:disabled {
+  background-color: #777;
+  cursor: not-allowed;
+}
+
+.select-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.select-button.selected {
+  background: #28a745;
+}
+
+.select-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.joker-button {
+  background: gold;
+  color: #333;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.joker-button.selected {
+  background: #FFC107;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.already-selected {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Loading spinner */
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+.text-primary {
+  color: #007bff !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .football-field {
+    height: 500px;
+  }
+  
+  .player-slot {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .player-image {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .reserves-container {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* Club colors - Define club colors here */
+[data-club="Manchester United"] { background-color: #DA020E; }
+[data-club="Liverpool"] { background-color: #C8102E; }
+[data-club="Manchester City"] { background-color: #6CABDD; }
+[data-club="Chelsea"] { background-color: #034694; }
+[data-club="Arsenal"] { background-color: #EF0107; }
+[data-club="Tottenham Hotspur"] { background-color: #132257; }
+[data-club="Leicester City"] { background-color: #003090; }
+[data-club="West Ham United"] { background-color: #7A263A; }
+[data-club="Everton"] { background-color: #003399; }
+[data-club="Newcastle United"] { background-color: #241F21; }
+[data-club="Aston Villa"] { background-color: #95BFE5; }
+[data-club="Southampton"] { background-color: #D71920; }
+[data-club="Crystal Palace"] { background-color: #1B458F; }
+[data-club="Brighton"] { background-color: #0057B8; }
+[data-club="Wolverhampton"] { background-color: #FDB913; }
+[data-club="Burnley"] { background-color: #6C1D45; }
+[data-club="Leeds United"] { background-color: #FFCD00; }
+[data-club="Watford"] { background-color: #FBEE23; }
+[data-club="Brentford"] { background-color: #FF0000; }
+[data-club="Norwich City"] { background-color: #00A650; }
+
+/* Alert messages */
+.alert {
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 5px;
+  font-weight: bold;
+  animation: fadeIn 0.3s ease;
+}
+
+.alert-error {
+  background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.8);
+  color: white;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,0 +1,69 @@
+# .NET
+bin/
+obj/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Environment files
+.env
+.env.local
+.env.prod
+.env.test
+.env.production
+.env.development
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# ASP.NET temporary files
+Temporary ASP.NET Files/
+ASP.NET temp/
+
+# IIS Express
+/IISExpress/
+
+# Build results
+*.log
+*.dmg
+*.pkg
+*.swp
+
+# NuGet
+.nuget/
+packages/
+
+# JetBrains Rider
+.idea/
+
+# User-specific JetBrains Rider files
+.idea/.idea/
+.idea/.idea/
+
+# Microsoft Visual Studio for Mac
+.vscode/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+/cypress/fixtures/
+/node_modules/

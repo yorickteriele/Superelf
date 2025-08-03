@@ -1,0 +1,124 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Create deployment directory and copy files
+      run: |
+        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+          mkdir -p /root/superelf-prod
+          cd /root/superelf-prod
+          
+          # Create environment file
+          cat > .env << EOF
+          PROD_DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
+          PROD_JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
+          EOF
+        '
+
+    - name: Copy project files to server
+      run: |
+        # Create a temporary archive with necessary files
+        # Using exit code handling to ignore "file changed" warnings
+        set +e  # Disable exit on error temporarily
+        tar --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='bin' \
+            --exclude='obj' \
+            --exclude='.vs' \
+            --exclude='.idea' \
+            --exclude='*.user' \
+            --exclude='*.log' \
+            --exclude='logs' \
+            --exclude='.vscode' \
+            --exclude='build' \
+            --exclude='dist' \
+            --exclude='target' \
+            --exclude='.nuget' \
+            --exclude='packages' \
+            --exclude='*.tmp' \
+            --exclude='*.temp' \
+            -czf superelf.tar.gz .
+        
+        # Check tar exit code - 0 = success, 1 = file changed (acceptable), 2+ = real error
+        TAR_EXIT_CODE=$?
+        set -e  # Re-enable exit on error
+        
+        if [ $TAR_EXIT_CODE -eq 0 ] || [ $TAR_EXIT_CODE -eq 1 ]; then
+          echo "Archive created successfully (exit code: $TAR_EXIT_CODE)"
+        else
+          echo "Tar failed with exit code: $TAR_EXIT_CODE"
+          exit $TAR_EXIT_CODE
+        fi
+        
+        # Verify archive was created
+        if [ ! -f superelf.tar.gz ]; then
+          echo "Error: Archive file was not created"
+          exit 1
+        fi
+        
+        # Copy to server
+        scp superelf.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-prod/
+        
+        # Extract on server
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-prod
+          tar -xzf superelf.tar.gz
+          rm superelf.tar.gz
+        '
+
+    - name: Deploy application
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-prod
+          
+          # Stop and remove existing containers
+          docker-compose -f docker-compose.prod.yml down --remove-orphans || true
+          
+          # Remove old images (except database)
+          docker image prune -f
+          docker rmi $(docker images "superelf-*" -q) 2>/dev/null || true
+          
+          # Build and start new containers
+          docker-compose -f docker-compose.prod.yml up -d --build
+          
+          # Wait for services to be healthy
+          echo "Waiting for services to start..."
+          sleep 30
+          
+          # Check container status
+          docker-compose -f docker-compose.prod.yml ps
+          
+          # Check if API is responding
+          echo "Testing API health..."
+          for i in {1..10}; do
+            if curl -f http://localhost:5000/api/diagnostics/ping; then
+              echo "API is healthy"
+              break
+            fi
+            echo "Attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+        '
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
