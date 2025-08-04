@@ -94,6 +94,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install EF Core tools
+      run: dotnet tool install --global dotnet-ef
+    
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
@@ -107,14 +115,69 @@ jobs:
         name: backend-build
         path: backend-build
     
-    - name: Create migrations directory on server
+    - name: Create deployment directory
       run: |
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} 'mkdir -p /root/superelf-test/migrations'
+        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+          mkdir -p /root/superelf-test
+          cd /root/superelf-test
+          
+          # Create environment file if not exists
+          if [ ! -f .env ]; then
+            printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
+            printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
+          fi
+        '
     
-    - name: Copy migrations to server
+    - name: Copy migrations and project files
       run: |
-        # Package migrations directory
-        tar -czf migrations.tar.gz Superelf.Infrastructure/Migrations/
+        # Create a temporary directory for deployment files
+        mkdir -p deploy/Superelf.Infrastructure/Migrations
+        mkdir -p deploy/Superelf.API
+        
+        # Copy required files for migrations
+        cp -r Superelf.Infrastructure/Migrations/* deploy/Superelf.Infrastructure/Migrations/
+        cp docker-compose.test.yml deploy/
+        cp Superelf.Infrastructure/Superelf.Infrastructure.csproj deploy/Superelf.Infrastructure/
+        cp Superelf.API/appsettings.Test.json deploy/Superelf.API/ 2>/dev/null || true
+        
+        # Create a script to run migrations
+        cat > deploy/apply-migrations.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        # Source environment variables
+        if [ -f .env ]; then
+          export $(grep -v '^#' .env | xargs)
+        fi
+        
+        # Make sure the database container is running
+        if ! docker ps | grep -q superelf-postgres-test; then
+          echo "Starting database container..."
+          docker-compose -f docker-compose.test.yml up -d postgres-test
+          
+          # Wait for the database to be ready
+          echo "Waiting for database to be ready..."
+          sleep 15
+        fi
+        
+        # Check if the API container exists
+        if docker ps -a | grep -q superelf-api-test; then
+          echo "API container exists, using it to apply migrations..."
+          # Run migrations through the existing container
+          docker exec superelf-api-test sh -c "dotnet ef database update --project /app/Superelf.Infrastructure/Superelf.Infrastructure.csproj --startup-project /app/Superelf.API/Superelf.API.csproj --context ApplicationDbContext"
+        else
+          echo "No API container, migrations will be applied during container startup"
+          # The migrations will be applied when the API container starts
+          # No action needed here
+        fi
+        
+        echo "Migration process completed"
+        EOF
+        
+        chmod +x deploy/apply-migrations.sh
+        
+        # Package migration files
+        tar -czf migrations.tar.gz -C deploy .
         
         # Copy to server
         scp migrations.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
@@ -124,17 +187,14 @@ jobs:
           cd /root/superelf-test
           tar -xzf migrations.tar.gz
           rm migrations.tar.gz
+          chmod +x apply-migrations.sh
         '
     
-    # Apply migrations using EF Core tools - placeholder
-    # In real implementation, you would need a dotnet command or script to apply migrations
     - name: Apply migrations
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          # This would be replaced with actual EF Core migrations command
-          echo "Migrations would be applied here (keeping existing data)"
-          # Example: docker exec superelf-api dotnet ef database update
+          ./apply-migrations.sh
         '
     
     - name: Cleanup migrations job
@@ -164,9 +224,11 @@ jobs:
           mkdir -p /root/superelf-test
           cd /root/superelf-test
           
-          # Create environment file using printf to handle special characters
-          printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
-          printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
+          # Ensure environment file exists
+          if [ ! -f .env ]; then
+            printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
+            printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
+          fi
         '
     
     - name: Download backend artifacts
@@ -179,10 +241,72 @@ jobs:
       run: |
         # Create archive with backend files
         mkdir -p deploy/Superelf.API
+        mkdir -p deploy/Superelf.Application
+        mkdir -p deploy/Superelf.Domain
+        mkdir -p deploy/Superelf.Infrastructure
+        
+        # Copy necessary files
         cp -r Superelf.API/Dockerfile deploy/Superelf.API/
         cp -r backend-build/* deploy/
         cp docker-compose.test.yml deploy/
         cp Superelf.API/appsettings.*.json deploy/Superelf.API/ 2>/dev/null || true
+        
+        # Create a deploy script for better control
+        cat > deploy/deploy-backend.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        # Source environment variables
+        if [ -f .env ]; then
+          export $(grep -v '^#' .env | xargs)
+        fi
+        
+        # Make sure the database container is running
+        if ! docker ps | grep -q superelf-postgres-test; then
+          echo "Starting database container..."
+          docker-compose -f docker-compose.test.yml up -d postgres-test
+          
+          # Wait for the database to be ready
+          echo "Waiting for database to be ready..."
+          sleep 15
+        fi
+        
+        # Stop backend services
+        echo "Stopping existing backend services..."
+        docker-compose -f docker-compose.test.yml stop api-test || true
+        
+        # Remove old images but keep the database
+        echo "Cleaning up old images..."
+        docker image prune -f
+        docker rmi $(docker images "superelf-api-test*" -q) 2>/dev/null || true
+        
+        # Build and start new backend container
+        echo "Building and starting new backend container..."
+        docker-compose -f docker-compose.test.yml up -d --build api-test
+        
+        # Wait for API to be healthy
+        echo "Waiting for API service to start..."
+        sleep 15
+        
+        # Check API status
+        echo "Testing API health..."
+        for i in {1..10}; do
+          if curl -f http://localhost:5001/api/diagnostics/ping; then
+            echo "API is healthy"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "API failed to respond after 10 attempts"
+            exit 1
+          fi
+          echo "Attempt $i failed, retrying in 10 seconds..."
+          sleep 10
+        done
+        
+        echo "Backend deployment completed successfully"
+        EOF
+        
+        chmod +x deploy/deploy-backend.sh
         
         tar -czf backend.tar.gz -C deploy .
         
@@ -194,37 +318,14 @@ jobs:
           cd /root/superelf-test
           tar -xzf backend.tar.gz
           rm backend.tar.gz
+          chmod +x deploy-backend.sh
         '
       
     - name: Deploy backend services
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          
-          # Stop backend services
-          docker-compose -f docker-compose.test.yml stop api || true
-          
-          # Remove old images
-          docker image prune -f
-          docker rmi $(docker images "superelf-api*" -q) 2>/dev/null || true
-          
-          # Build and start new backend container
-          docker-compose -f docker-compose.test.yml up -d --build api
-          
-          # Wait for API to be healthy
-          echo "Waiting for API service to start..."
-          sleep 15
-          
-          # Check API status
-          echo "Testing API health..."
-          for i in {1..10}; do
-            if curl -f http://localhost:5001/api/diagnostics/ping; then
-              echo "API is healthy"
-              break
-            fi
-            echo "Attempt $i failed, retrying in 10 seconds..."
-            sleep 10
-          done
+          ./deploy-backend.sh
         '
       
     - name: Cleanup backend deploy
@@ -262,6 +363,37 @@ jobs:
         cp -r Superelf.Web/nginx.conf deploy/Superelf.Web/
         cp -r frontend-build deploy/Superelf.Web/build
         
+        # Create a deploy script for frontend
+        cat > deploy/deploy-frontend.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        # Source environment variables
+        if [ -f .env ]; then
+          export $(grep -v '^#' .env | xargs)
+        fi
+        
+        # Stop frontend services
+        echo "Stopping existing frontend services..."
+        docker-compose -f docker-compose.test.yml stop frontend-test || true
+        
+        # Remove old images
+        echo "Cleaning up old frontend images..."
+        docker rmi $(docker images "superelf-frontend-test*" -q) 2>/dev/null || true
+        
+        # Build and start new frontend container
+        echo "Building and starting new frontend container..."
+        docker-compose -f docker-compose.test.yml up -d --build frontend-test
+        
+        # Check container status
+        echo "Checking container status..."
+        docker-compose -f docker-compose.test.yml ps
+        
+        echo "Frontend deployment completed successfully"
+        EOF
+        
+        chmod +x deploy/deploy-frontend.sh
+        
         tar -czf frontend.tar.gz -C deploy .
         
         # Copy to server
@@ -272,24 +404,35 @@ jobs:
           cd /root/superelf-test
           tar -xzf frontend.tar.gz
           rm frontend.tar.gz
+          chmod +x deploy-frontend.sh
         '
       
     - name: Deploy frontend services
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
+          ./deploy-frontend.sh
+        '
+      
+    - name: Verify full deployment
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
           
-          # Stop frontend services
-          docker-compose -f docker-compose.test.yml stop web || true
-          
-          # Remove old images
-          docker rmi $(docker images "superelf-web*" -q) 2>/dev/null || true
-          
-          # Build and start new frontend container
-          docker-compose -f docker-compose.test.yml up -d --build web
-          
-          # Check container status
+          # Check all container statuses
+          echo "Checking all containers status..."
           docker-compose -f docker-compose.test.yml ps
+          
+          # Check if API is still responding
+          echo "Final API health check..."
+          if curl -f http://localhost:5001/api/diagnostics/ping; then
+            echo "✅ API is healthy"
+          else
+            echo "❌ API is not responding"
+            exit 1
+          fi
+          
+          echo "✅ Full deployment completed successfully"
         '
       
     - name: Cleanup frontend deploy
