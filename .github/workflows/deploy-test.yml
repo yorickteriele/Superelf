@@ -57,19 +57,11 @@ jobs:
         dotnet restore Superelf.Web.sln
         dotnet build Superelf.Web.sln --configuration Release --no-restore
     
-    - name: Fix frontend ESLint issues
+    - name: Setup frontend environment
       run: |
         cd Superelf.Web
-        # Fix ESLint issues
-        find src -type f -name "*.tsx" -exec sed -i 's/confirm(/window.confirm(/g' {} \;
+        # Create environment file for build
         echo "ESLINT_NO_DEV_ERRORS=true" > .env
-        
-        # Fix React Hook rule issues in AdminPanel.tsx
-        echo "Fixing React Hook rules in AdminPanel.tsx..."
-        if [ -f "src/pages/AdminPanel.tsx" ]; then
-          # Replace conditional hooks with properly structured hooks
-          sed -i 's/if (.*) {[[:space:]]*useEffect/useEffect/g' src/pages/AdminPanel.tsx
-        fi
     
     - name: Build frontend
       run: |

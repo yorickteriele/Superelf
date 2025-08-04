@@ -22,15 +22,14 @@ const AdminPanel: React.FC = () => {
   // State for different sections
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
-
-  // Check if user is admin
-  if (!user || !isAdmin(user)) {
-    return <Navigate to="/login" replace />;
-  }
-
+  
+  // Define all useEffect hooks before any conditional returns
   useEffect(() => {
-    loadInitialData();
-  }, [activeTab]);
+    // Only load data if user is admin
+    if (user && isAdmin(user)) {
+      loadInitialData();
+    }
+  }, [activeTab, user]);
 
   // Auto-clear messages after 5 seconds
   useEffect(() => {
@@ -42,6 +41,11 @@ const AdminPanel: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [error, success]);
+  
+  // Check if user is admin
+  if (!user || !isAdmin(user)) {
+    return <Navigate to="/login" replace />;
+  }
 
   const loadInitialData = async () => {
     if (activeTab === 'dashboard') {
@@ -76,7 +80,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleMakeAdmin = async (userId: string) => {
-    if (!confirm('Are you sure you want to make this user an admin?')) return;
+    if (!window.confirm('Are you sure you want to make this user an admin?')) return;
     
     try {
       await adminService.makeUserAdmin(userId);
@@ -88,7 +92,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleRemoveAdmin = async (userId: string) => {
-    if (!confirm('Are you sure you want to remove admin privileges from this user?')) return;
+    if (!window.confirm('Are you sure you want to remove admin privileges from this user?')) return;
     
     try {
       await adminService.removeUserAdmin(userId);
@@ -100,7 +104,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     
     try {
       await adminService.deleteUser(userId);
@@ -112,7 +116,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleCleanupDatabase = async () => {
-    if (!confirm('Are you sure you want to cleanup the database? This will remove old incomplete data.')) return;
+    if (!window.confirm('Are you sure you want to cleanup the database? This will remove old incomplete data?')) return;
     
     try {
       const result = await adminService.cleanupDatabase();

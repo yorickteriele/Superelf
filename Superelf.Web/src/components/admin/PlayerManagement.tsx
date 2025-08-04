@@ -118,7 +118,7 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({ onError, onS
   };
 
   const handleDeletePlayer = async (playerId: string) => {
-    if (!confirm('Are you sure you want to delete this player?')) return;
+    if (!window.confirm('Are you sure you want to delete this player?')) return;
     
     setLoading(true);
     try {
