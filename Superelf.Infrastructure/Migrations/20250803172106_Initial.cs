@@ -54,18 +54,39 @@ namespace Superelf.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FootballPlayers",
+                name: "Clubs",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Position = table.Column<string>(type: "text", nullable: false),
-                    Nationality = table.Column<string>(type: "text", nullable: false),
-                    Club = table.Column<string>(type: "text", nullable: true)
+                    ShortName = table.Column<string>(type: "text", nullable: true),
+                    LogoUrl = table.Column<string>(type: "text", nullable: true),
+                    Country = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FootballPlayers", x => x.Id);
+                    table.PrimaryKey("PK_Clubs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Matches",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    HomeTeam = table.Column<string>(type: "text", nullable: false),
+                    AwayTeam = table.Column<string>(type: "text", nullable: false),
+                    HomeScore = table.Column<int>(type: "integer", nullable: true),
+                    AwayScore = table.Column<int>(type: "integer", nullable: true),
+                    MatchDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Competition = table.Column<string>(type: "text", nullable: true),
+                    Round = table.Column<int>(type: "integer", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Matches", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -196,6 +217,30 @@ namespace Superelf.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FootballPlayers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Position = table.Column<string>(type: "text", nullable: false),
+                    Nationality = table.Column<string>(type: "text", nullable: false),
+                    Club = table.Column<string>(type: "text", nullable: true),
+                    ClubId = table.Column<Guid>(type: "uuid", nullable: true),
+                    JerseyNumber = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FootballPlayers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FootballPlayers_Clubs_ClubId",
+                        column: x => x.ClubId,
+                        principalTable: "Clubs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PoolParticipants",
                 columns: table => new
                 {
@@ -216,6 +261,68 @@ namespace Superelf.Infrastructure.Migrations
                         column: x => x.PoolId,
                         principalTable: "Pools",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserScores",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    PoolId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Score = table.Column<int>(type: "integer", nullable: false),
+                    HasUsedJoker = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserScores", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserScores_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserScores_Pools_PoolId",
+                        column: x => x.PoolId,
+                        principalTable: "Pools",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayerPerformances",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    MatchId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Goals = table.Column<int>(type: "integer", nullable: false),
+                    PenaltyGoals = table.Column<int>(type: "integer", nullable: false),
+                    OwnGoals = table.Column<int>(type: "integer", nullable: false),
+                    Assists = table.Column<int>(type: "integer", nullable: false),
+                    YellowCards = table.Column<int>(type: "integer", nullable: false),
+                    RedCards = table.Column<int>(type: "integer", nullable: false),
+                    Played = table.Column<bool>(type: "boolean", nullable: false),
+                    Rating = table.Column<double>(type: "double precision", nullable: false),
+                    Points = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerPerformances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlayerPerformances_FootballPlayers_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "FootballPlayers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlayerPerformances_Matches_MatchId",
+                        column: x => x.MatchId,
+                        principalTable: "Matches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -268,41 +375,19 @@ namespace Superelf.Infrastructure.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "96a70d3c-0c2b-43f7-866f-51496350c371", null, "Admin", "ADMIN" },
-                    { "9bfd11f3-1427-45aa-a263-eff9770aeda8", null, "User", "USER" }
+                    { "550e8400-e29b-41d4-a716-446655440000", null, "Admin", "ADMIN" },
+                    { "550e8400-e29b-41d4-a716-446655440001", null, "User", "USER" }
                 });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "8bb5a494-cb37-4861-b92e-f6e94439d990", 0, "2751b124-f4d7-4ed7-8cf6-4d569dc107a4", "admin@superelf.com", true, false, null, "ADMIN@SUPERELF.COM", "ADMIN@SUPERELF.COM", "AQAAAAIAAYagAAAAELujqQVhMoB5Z58g2mV2qldlKTmf+xdqXR7sy7Ewy3RUkcbYjFPWlAq5vl9p6QUTKA==", null, false, "9f3cef55-b3af-4752-837f-e3c3f7fd19ef", false, "admin@superelf.com" });
-
-            migrationBuilder.InsertData(
-                table: "FootballPlayers",
-                columns: new[] { "Id", "Club", "Name", "Nationality", "Position" },
-                values: new object[,]
-                {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), null, "Unai Simón", "SPANJE", "Goalkeeper" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), null, "Josko Gvardiol", "KROATIE", "Defender" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), null, "Virgil van Dijk", "NEDERLAND", "Defender" },
-                    { new Guid("44444444-4444-4444-4444-444444444444"), null, "Giovanni Di Lorenzo", "ITALIE", "Defender" },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), null, "Andreas Christensen", "DENEMARKEN", "Defender" },
-                    { new Guid("66666666-6666-6666-6666-666666666666"), null, "Xherdan Shaqiri", "ZWITSERLAND", "Midfielder" },
-                    { new Guid("77777777-7777-7777-7777-777777777777"), null, "Florian Wirtz", "DUITSLAND", "Midfielder" },
-                    { new Guid("88888888-8888-8888-8888-888888888888"), null, "Kevin De Bruyne", "BELGIE", "Midfielder" },
-                    { new Guid("99999999-9999-9999-9999-999999999999"), null, "Cristiano Ronaldo", "PORTUGAL", "Forward" },
-                    { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), null, "Kylian Mbappé", "FRANKRIJK", "Forward" },
-                    { new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), null, "Harry Kane", "ENGELAND", "Forward" },
-                    { new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), null, "Jan Oblak", "SLOVENIE", "Goalkeeper" },
-                    { new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"), null, "Nemanja Stojic", "SERVIE", "Defender" },
-                    { new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), null, "Nicola Zalewski", "POLEN", "Midfielder" },
-                    { new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"), null, "Maximilian Entrup", "OOSTENRIJK", "Forward" }
-                });
+                values: new object[] { "550e8400-e29b-41d4-a716-446655440002", 0, "0d5b0a2d-dad7-4d23-bd08-88a0d90a8a8b", "admin@superelf.com", true, false, null, "ADMIN@SUPERELF.COM", "ADMIN@SUPERELF.COM", "AQAAAAIAAYagAAAAEDjDS5rT2pXZLe5SDiKfp8+rovjrIX8q4XSuVCYPtckanb4pdnsFcTTPfcrjmjzAWQ==", null, false, "cb547aa4-eed5-447e-acc4-bc0704b2130a", false, "admin@superelf.com" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "96a70d3c-0c2b-43f7-866f-51496350c371", "8bb5a494-cb37-4861-b92e-f6e94439d990" });
+                values: new object[] { "550e8400-e29b-41d4-a716-446655440000", "550e8400-e29b-41d4-a716-446655440002" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -342,6 +427,11 @@ namespace Superelf.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_FootballPlayers_ClubId",
+                table: "FootballPlayers",
+                column: "ClubId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LineupLines_FootballPlayerId",
                 table: "LineupLines",
                 column: "FootballPlayerId");
@@ -357,6 +447,16 @@ namespace Superelf.Infrastructure.Migrations
                 column: "PoolUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayerPerformances_MatchId",
+                table: "PlayerPerformances",
+                column: "MatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerPerformances_PlayerId",
+                table: "PlayerPerformances",
+                column: "PlayerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PoolParticipants_ApplicationUserId",
                 table: "PoolParticipants",
                 column: "ApplicationUserId");
@@ -370,6 +470,16 @@ namespace Superelf.Infrastructure.Migrations
                 name: "IX_Pools_OwnerId",
                 table: "Pools",
                 column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserScores_PoolId",
+                table: "UserScores",
+                column: "PoolId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserScores_UserId",
+                table: "UserScores",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -394,16 +504,28 @@ namespace Superelf.Infrastructure.Migrations
                 name: "LineupLines");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "PlayerPerformances");
 
             migrationBuilder.DropTable(
-                name: "FootballPlayers");
+                name: "UserScores");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Lineups");
 
             migrationBuilder.DropTable(
+                name: "FootballPlayers");
+
+            migrationBuilder.DropTable(
+                name: "Matches");
+
+            migrationBuilder.DropTable(
                 name: "PoolParticipants");
+
+            migrationBuilder.DropTable(
+                name: "Clubs");
 
             migrationBuilder.DropTable(
                 name: "Pools");

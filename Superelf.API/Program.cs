@@ -119,6 +119,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
     }
 });
 
+// Configure Npgsql to handle DateTime properly for PostgreSQL
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -335,6 +338,11 @@ else
                 logger.LogInformation("Applying database migrations...");
                 dbContext.Database.Migrate();
                 logger.LogInformation("=== MIGRATIONS SUCCESSFULLY APPLIED ===");
+                
+                // Seed Eredivisie data
+                logger.LogInformation("Seeding Eredivisie sample data...");
+                await EredivisieSeedData.SeedAsync(dbContext);
+                logger.LogInformation("Eredivisie sample data seeded successfully.");
             }
             
             migrationSuccess = true;
