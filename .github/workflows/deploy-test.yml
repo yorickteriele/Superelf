@@ -6,21 +6,159 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  backend-build:
+    name: Build Backend
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore Superelf.Web.sln
+      
+    - name: Build backend
+      run: dotnet build Superelf.Web.sln --configuration Release --no-restore
+      
+    - name: Upload backend artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-build
+        path: |
+          Superelf.API/bin/Release/
+          Superelf.Application/bin/Release/
+          Superelf.Domain/bin/Release/
+          Superelf.Infrastructure/bin/Release/
+        retention-days: 1
 
+  frontend-build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        cd Superelf.Web
+        npm ci
+        
+    - name: Build frontend
+      run: |
+        cd Superelf.Web
+        npm run build
+        
+    - name: Upload frontend artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: Superelf.Web/build/
+        retention-days: 1
+  
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: [backend-build]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+        
+    # This is a placeholder for future unit tests
+    - name: Run unit tests
+      run: echo "No unit tests configured yet. This is a placeholder for future tests."
+      # Future implementation: dotnet test Superelf.Web.sln
+
+  apply-migrations:
+    name: Apply Database Migrations
+    runs-on: ubuntu-latest
+    needs: [backend-build, unit-tests]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+    
+    - name: Download backend artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: backend-build
+        path: backend-build
+    
+    - name: Create migrations directory on server
+      run: |
+        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} 'mkdir -p /root/superelf-test/migrations'
+    
+    - name: Copy migrations to server
+      run: |
+        # Package migrations directory
+        tar -czf migrations.tar.gz Superelf.Infrastructure/Migrations/
+        
+        # Copy to server
+        scp migrations.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
+        
+        # Extract on server
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          tar -xzf migrations.tar.gz
+          rm migrations.tar.gz
+        '
+    
+    # Apply migrations using EF Core tools - placeholder
+    # In real implementation, you would need a dotnet command or script to apply migrations
+    - name: Apply migrations
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          # This would be replaced with actual EF Core migrations command
+          echo "Migrations would be applied here (keeping existing data)"
+          # Example: docker exec superelf-api dotnet ef database update
+        '
+    
+    - name: Cleanup migrations job
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
 
-    - name: Create deployment directory and copy files
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: [backend-build, apply-migrations]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      
+    - name: Create deployment directory
       run: |
         ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
           mkdir -p /root/superelf-test
@@ -30,81 +168,54 @@ jobs:
           printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
           printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
         '
-
-    - name: Copy project files to server
+    
+    - name: Download backend artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: backend-build
+        path: backend-build
+      
+    - name: Copy backend files and configs
       run: |
-        # Create a temporary archive with necessary files
-        # Using exit code handling to ignore "file changed" warnings
-        set +e  # Disable exit on error temporarily
-        tar --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='bin' \
-            --exclude='obj' \
-            --exclude='.vs' \
-            --exclude='.idea' \
-            --exclude='*.user' \
-            --exclude='*.log' \
-            --exclude='logs' \
-            --exclude='.vscode' \
-            --exclude='build' \
-            --exclude='dist' \
-            --exclude='target' \
-            --exclude='.nuget' \
-            --exclude='packages' \
-            --exclude='*.tmp' \
-            --exclude='*.temp' \
-            -czf superelf.tar.gz .
+        # Create archive with backend files
+        mkdir -p deploy/Superelf.API
+        cp -r Superelf.API/Dockerfile deploy/Superelf.API/
+        cp -r backend-build/* deploy/
+        cp docker-compose.test.yml deploy/
+        cp Superelf.API/appsettings.*.json deploy/Superelf.API/ 2>/dev/null || true
         
-        # Check tar exit code - 0 = success, 1 = file changed (acceptable), 2+ = real error
-        TAR_EXIT_CODE=$?
-        set -e  # Re-enable exit on error
-        
-        if [ $TAR_EXIT_CODE -eq 0 ] || [ $TAR_EXIT_CODE -eq 1 ]; then
-          echo "Archive created successfully (exit code: $TAR_EXIT_CODE)"
-        else
-          echo "Tar failed with exit code: $TAR_EXIT_CODE"
-          exit $TAR_EXIT_CODE
-        fi
-        
-        # Verify archive was created
-        if [ ! -f superelf.tar.gz ]; then
-          echo "Error: Archive file was not created"
-          exit 1
-        fi
+        tar -czf backend.tar.gz -C deploy .
         
         # Copy to server
-        scp superelf.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
+        scp backend.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
         
         # Extract on server
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          tar -xzf superelf.tar.gz
-          rm superelf.tar.gz
+          tar -xzf backend.tar.gz
+          rm backend.tar.gz
         '
-
-    - name: Deploy application
+      
+    - name: Deploy backend services
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
           
-          # Stop and remove existing containers
-          docker-compose -f docker-compose.test.yml down --remove-orphans || true
+          # Stop backend services
+          docker-compose -f docker-compose.test.yml stop api || true
           
-          # Remove old images (except database)
+          # Remove old images
           docker image prune -f
-          docker rmi $(docker images "superelf-*" -q) 2>/dev/null || true
+          docker rmi $(docker images "superelf-api*" -q) 2>/dev/null || true
           
-          # Build and start new containers
-          docker-compose -f docker-compose.test.yml up -d --build
+          # Build and start new backend container
+          docker-compose -f docker-compose.test.yml up -d --build api
           
-          # Wait for services to be healthy
-          echo "Waiting for services to start..."
-          sleep 30
+          # Wait for API to be healthy
+          echo "Waiting for API service to start..."
+          sleep 15
           
-          # Check container status
-          docker-compose -f docker-compose.test.yml ps
-          
-          # Check if API is responding
+          # Check API status
           echo "Testing API health..."
           for i in {1..10}; do
             if curl -f http://localhost:5001/api/diagnostics/ping; then
@@ -115,8 +226,73 @@ jobs:
             sleep 10
           done
         '
+      
+    - name: Cleanup backend deploy
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
 
-    - name: Cleanup
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: [frontend-build, deploy-backend]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      
+    - name: Download frontend artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend-build
+      
+    - name: Copy frontend files
+      run: |
+        # Create archive with frontend files
+        mkdir -p deploy/Superelf.Web
+        cp -r Superelf.Web/Dockerfile deploy/Superelf.Web/
+        cp -r Superelf.Web/nginx.conf deploy/Superelf.Web/
+        cp -r frontend-build deploy/Superelf.Web/build
+        
+        tar -czf frontend.tar.gz -C deploy .
+        
+        # Copy to server
+        scp frontend.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
+        
+        # Extract on server
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          tar -xzf frontend.tar.gz
+          rm frontend.tar.gz
+        '
+      
+    - name: Deploy frontend services
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          
+          # Stop frontend services
+          docker-compose -f docker-compose.test.yml stop web || true
+          
+          # Remove old images
+          docker rmi $(docker images "superelf-web*" -q) 2>/dev/null || true
+          
+          # Build and start new frontend container
+          docker-compose -f docker-compose.test.yml up -d --build web
+          
+          # Check container status
+          docker-compose -f docker-compose.test.yml ps
+        '
+      
+    - name: Cleanup frontend deploy
       if: always()
       run: |
         rm -f ~/.ssh/id_rsa
