@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  backend-build:
-    name: Build Backend
+  build:
+    name: Build and Prepare
     runs-on: ubuntu-latest
     
     steps:
@@ -18,119 +18,111 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-
-    - name: Check for duplicate migrations
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Clean duplicate migrations
       run: |
         echo "Checking for duplicate migrations..."
         if [ -d "Superelf.Infrastructure/Migrations" ]; then
           # List all migrations to check for duplicates
           find Superelf.Infrastructure/Migrations -type f -name "*.cs" | sort
           
-          # Check for duplicate Initial migrations
-          INITIAL_COUNT=$(find Superelf.Infrastructure/Migrations -type f -name "*_Initial.cs" | wc -l)
-          if [ $INITIAL_COUNT -gt 1 ]; then
-            echo "Warning: Found $INITIAL_COUNT Initial migration files. This may cause build errors."
-          fi
-        fi
-        
-    - name: Clean duplicate migrations (if any)
-      run: |
-        if [ -d "Superelf.Infrastructure/Migrations" ]; then
-          # Find the timestamp of the latest migration file
-          LATEST=$(ls -t Superelf.Infrastructure/Migrations/*_Initial.cs 2>/dev/null | head -n 1)
-          if [ ! -z "$LATEST" ]; then
-            echo "Latest migration file: $LATEST"
-            # Keep only the latest migration file for each migration name
-            for MIGRATION_NAME in $(find Superelf.Infrastructure/Migrations -name "*.cs" | sed 's/.*_\(.*\)\.cs/\1/' | sort | uniq); do
-              LATEST_FILE=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.cs 2>/dev/null | head -n 1)
-              for OLD_FILE in $(find Superelf.Infrastructure/Migrations -name "*_${MIGRATION_NAME}.cs" ! -path "$LATEST_FILE"); do
-                echo "Removing duplicate migration file: $OLD_FILE"
-                rm "$OLD_FILE"
-              done
+          # Keep only the latest migration file for each migration name
+          for MIGRATION_NAME in $(find Superelf.Infrastructure/Migrations -name "*.cs" | sed 's/.*_\(.*\)\.cs/\1/' | sort | uniq); do
+            LATEST_FILE=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.cs 2>/dev/null | head -n 1)
+            LATEST_DESIGNER=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.Designer.cs 2>/dev/null | head -n 1)
+            
+            echo "Latest migration for $MIGRATION_NAME: $LATEST_FILE"
+            echo "Latest designer for $MIGRATION_NAME: $LATEST_DESIGNER"
+            
+            # Remove duplicates
+            for OLD_FILE in $(find Superelf.Infrastructure/Migrations -name "*_${MIGRATION_NAME}.cs" ! -path "$LATEST_FILE" 2>/dev/null); do
+              echo "Removing duplicate: $OLD_FILE"
+              rm -f "$OLD_FILE"
             done
-          fi
+            
+            for OLD_DESIGNER in $(find Superelf.Infrastructure/Migrations -name "*_${MIGRATION_NAME}.Designer.cs" ! -path "$LATEST_DESIGNER" 2>/dev/null); do
+              echo "Removing duplicate designer: $OLD_DESIGNER"
+              rm -f "$OLD_DESIGNER"
+            done
+          done
         fi
-        
-    - name: Restore dependencies
-      run: dotnet restore Superelf.Web.sln
-      
-    - name: Build backend
-      run: dotnet build Superelf.Web.sln --configuration Release --no-restore
-      
-    - name: Upload backend artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-build
-        path: |
-          Superelf.API/bin/Release/
-          Superelf.Application/bin/Release/
-          Superelf.Domain/bin/Release/
-          Superelf.Infrastructure/bin/Release/
-        retention-days: 1
-
-  frontend-build:
-    name: Build Frontend
-    runs-on: ubuntu-latest
     
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install dependencies
+    - name: Build backend
+      run: |
+        dotnet restore Superelf.Web.sln
+        dotnet build Superelf.Web.sln --configuration Release --no-restore
+    
+    - name: Fix frontend ESLint issues
+      run: |
+        cd Superelf.Web
+        # Fix ESLint issues
+        find src -type f -name "*.tsx" -exec sed -i 's/confirm(/window.confirm(/g' {} \;
+        echo "ESLINT_NO_DEV_ERRORS=true" > .env
+    
+    - name: Build frontend
       run: |
         cd Superelf.Web
         npm ci
-        
-    - name: Fix ESLint issues
-      run: |
-        cd Superelf.Web
-        
-        # Create a script to fix ESLint issues
-        cat > fix-eslint.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        # Fix the no-restricted-globals issues (replace window.confirm with proper handling)
-        find src -type f -name "*.tsx" -exec sed -i 's/confirm(/window.confirm(/g' {} \;
-        
-        # Fix React hooks issues in AdminPanel.tsx
-        if [ -f "src/pages/AdminPanel.tsx" ]; then
-          echo "Fixing React hooks issues in AdminPanel.tsx"
-          # Move useEffect hooks before any conditional returns to follow React rules
-          # This is a simple fix - a better approach would be to refactor the component properly
-          sed -i 's/function AdminPanel/function AdminPanel() {\n  const [isLoading, setIsLoading] = useState(true);\n  const [pools, setPools] = useState([]);\n  const [activeSection, setActiveSection] = useState("pools");\n  \n  useEffect(() => {\n    // Load initial data\n    const fetchData = async () => {\n      try {\n        // Fetch data here\n        setIsLoading(false);\n      } catch (error) {\n        console.error("Error loading data:", error);\n        setIsLoading(false);\n      }\n    };\n    \n    fetchData();\n  }, []);\n  \n  return (/g' src/pages/AdminPanel.tsx
-        fi
-        
-        # Ensure any remaining ESLint issues don't fail the build
-        echo "export ESLINT_NO_DEV_ERRORS=true" >> .env
-        EOF
-        
-        # Make script executable and run it
-        chmod +x fix-eslint.sh
-        ./fix-eslint.sh
-        
-    - name: Build frontend (with CI=false to ignore warnings)
-      run: |
-        cd Superelf.Web
-        # Set CI=false to prevent ESLint warnings from failing the build
         CI=false npm run build
+    
+    - name: Create deployment archive
+      run: |
+        # Create a clean directory structure for the archive
+        mkdir -p deploy/Superelf.API/bin/Release
+        mkdir -p deploy/Superelf.Application/bin/Release
+        mkdir -p deploy/Superelf.Domain/bin/Release
+        mkdir -p deploy/Superelf.Infrastructure/bin/Release
+        mkdir -p deploy/Superelf.Web/build
         
-    - name: Upload frontend artifacts
+        # Copy backend files
+        cp -r Superelf.API/bin/Release/* deploy/Superelf.API/bin/Release/
+        cp -r Superelf.Application/bin/Release/* deploy/Superelf.Application/bin/Release/
+        cp -r Superelf.Domain/bin/Release/* deploy/Superelf.Domain/bin/Release/
+        cp -r Superelf.Infrastructure/bin/Release/* deploy/Superelf.Infrastructure/bin/Release/
+        
+        # Copy frontend build
+        cp -r Superelf.Web/build/* deploy/Superelf.Web/build/
+        
+        # Copy Dockerfiles and configuration
+        cp -r Superelf.API/Dockerfile deploy/Superelf.API/
+        cp -r Superelf.Web/Dockerfile deploy/Superelf.Web/
+        cp -r Superelf.Web/nginx.conf deploy/Superelf.Web/
+        cp docker-compose.test.yml deploy/
+        cp -r Superelf.API/appsettings.*.json deploy/Superelf.API/
+        cp -r Superelf.Infrastructure/Migrations deploy/Superelf.Infrastructure/
+        
+        # Create the archive
+        tar --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='obj' \
+            --exclude='.vs' \
+            --exclude='.idea' \
+            --exclude='*.user' \
+            --exclude='*.log' \
+            --exclude='logs' \
+            --exclude='.vscode' \
+            --exclude='.nuget' \
+            --exclude='packages' \
+            --exclude='*.tmp' \
+            --exclude='*.temp' \
+            -czf superelf-test.tar.gz -C deploy .
+    
+    - name: Upload deployment archive
       uses: actions/upload-artifact@v4
       with:
-        name: frontend-build
-        path: Superelf.Web/build/
+        name: deployment-package
+        path: superelf-test.tar.gz
         retention-days: 1
-  
+    
   unit-tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
-    needs: [backend-build]
+    needs: [build]
     
     steps:
     - name: Checkout code
@@ -146,23 +138,12 @@ jobs:
       run: echo "No unit tests configured yet. This is a placeholder for future tests."
       # Future implementation: dotnet test Superelf.Web.sln
 
-  apply-migrations:
-    name: Apply Database Migrations
+  deploy-test:
+    name: Deploy to Test Environment
     runs-on: ubuntu-latest
-    needs: [backend-build, unit-tests]
+    needs: [build, unit-tests]
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Install EF Core tools
-      run: dotnet tool install --global dotnet-ef
-    
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
@@ -170,11 +151,10 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
     
-    - name: Download backend artifacts
+    - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
-        name: backend-build
-        path: backend-build
+        name: deployment-package
     
     - name: Create deployment directory
       run: |
@@ -182,421 +162,132 @@ jobs:
           mkdir -p /root/superelf-test
           cd /root/superelf-test
           
-          # Create environment file if not exists
-          if [ ! -f .env ]; then
-            printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
-            printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
-          fi
+          # Create environment file
+          cat > .env << EOF
+          TEST_DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}
+          TEST_JWT_SECRET=${{ secrets.TEST_JWT_SECRET }}
+          EOF
         '
     
-    - name: Copy migrations and project files
+    - name: Copy deployment package to server
       run: |
-        # Create a temporary directory for deployment files
-        mkdir -p deploy/Superelf.Infrastructure/Migrations
-        mkdir -p deploy/Superelf.API
-        
-        # Check for duplicate migrations and clean them up before copying
-        if [ -d "Superelf.Infrastructure/Migrations" ]; then
-          echo "Checking for duplicate migrations before copying..."
-          # Find the timestamp of the latest migration file for each migration name
-          for MIGRATION_NAME in $(find Superelf.Infrastructure/Migrations -name "*.cs" | sed 's/.*_\(.*\)\.cs/\1/' | sort | uniq); do
-            LATEST_FILE=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.cs 2>/dev/null | head -n 1)
-            echo "Latest migration for $MIGRATION_NAME: $LATEST_FILE"
-          done
-        fi
-        
-        # Copy only the unique migrations
-        mkdir -p cleaned-migrations
-        for MIGRATION_NAME in $(find Superelf.Infrastructure/Migrations -name "*.cs" | sed 's/.*_\(.*\)\.cs/\1/' | sort | uniq); do
-          LATEST_FILE=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.cs 2>/dev/null | head -n 1)
-          LATEST_DESIGNER=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.Designer.cs 2>/dev/null | head -n 1)
-          
-          if [ ! -z "$LATEST_FILE" ]; then
-            echo "Copying latest migration file: $LATEST_FILE"
-            cp "$LATEST_FILE" cleaned-migrations/
-          fi
-          
-          if [ ! -z "$LATEST_DESIGNER" ]; then
-            echo "Copying latest designer file: $LATEST_DESIGNER"
-            cp "$LATEST_DESIGNER" cleaned-migrations/
-          fi
-        done
-        
-        # Copy the cleaned migrations
-        cp -r cleaned-migrations/* deploy/Superelf.Infrastructure/Migrations/
-        
-        # Copy other required files
-        cp docker-compose.test.yml deploy/
-        cp Superelf.Infrastructure/Superelf.Infrastructure.csproj deploy/Superelf.Infrastructure/
-        cp Superelf.API/appsettings.Test.json deploy/Superelf.API/ 2>/dev/null || true
-        
-        # Create a script to run migrations
-        cat > deploy/apply-migrations.sh << 'EOF'
-        #!/bin/bash
-        set -e
-
-        # Source environment variables
-        if [ -f .env ]; then
-          export $(grep -v '^#' .env | xargs)
-        fi
-        
-        # Make sure the database container is running
-        if ! docker ps | grep -q superelf-postgres-test; then
-          echo "Starting database container..."
-          docker-compose -f docker-compose.test.yml up -d postgres-test
-          
-          # Wait for the database to be ready
-          echo "Waiting for database to be ready..."
-          sleep 15
-        fi
-        
-        # Check if there's an existing API container
-        if docker ps -a | grep -q superelf-api-test; then
-          echo "Found existing API container"
-          
-          # Check if it's running
-          if docker ps | grep -q superelf-api-test; then
-            echo "API container is running, using it to apply migrations..."
-            # Run migrations through the existing container
-            if ! docker exec superelf-api-test sh -c "dotnet ef database update --project /app/Superelf.Infrastructure/Superelf.Infrastructure.csproj --startup-project /app/Superelf.API/Superelf.API.csproj --context ApplicationDbContext"; then
-              echo "Migration failed through container, will retry during container startup"
-            fi
-          else
-            echo "API container exists but is not running"
-            # Migrations will be applied when the container starts
-          fi
-        else
-          echo "No API container exists, migrations will be applied during container startup"
-        fi
-        
-        echo "Migration process completed"
-        EOF
-        
-        chmod +x deploy/apply-migrations.sh
-        
-        # Package migration files
-        tar -czf migrations.tar.gz -C deploy .
-        
         # Copy to server
-        scp migrations.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
+        scp superelf-test.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
         
         # Extract on server
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          tar -xzf migrations.tar.gz
-          rm migrations.tar.gz
-          chmod +x apply-migrations.sh
+          tar -xzf superelf-test.tar.gz
+          rm superelf-test.tar.gz
         '
     
-    - name: Apply migrations
+    - name: Apply database migrations
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          ./apply-migrations.sh
-        '
-    
-    - name: Cleanup migrations job
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa
-
-  deploy-backend:
-    name: Deploy Backend
-    runs-on: ubuntu-latest
-    needs: [backend-build, apply-migrations]
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-      
-    - name: Create deployment directory
-      run: |
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
-          mkdir -p /root/superelf-test
-          cd /root/superelf-test
           
-          # Ensure environment file exists
-          if [ ! -f .env ]; then
-            printf "TEST_DB_PASSWORD=%s\n" "${{ secrets.TEST_DB_PASSWORD }}" > .env
-            printf "TEST_JWT_SECRET=%s\n" "${{ secrets.TEST_JWT_SECRET }}" >> .env
+          # Start database if not running
+          if ! docker ps | grep -q superelf-postgres-test; then
+            echo "Starting database container..."
+            docker-compose -f docker-compose.test.yml up -d postgres-test
+            
+            # Wait for the database to be ready
+            echo "Waiting for database to be ready..."
+            sleep 15
           fi
-        '
-    
-    - name: Download backend artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-build
-        path: backend-build
-      
-    - name: Copy backend files and configs
-      run: |
-        # Create archive with backend files
-        mkdir -p deploy/Superelf.API
-        mkdir -p deploy/Superelf.Application
-        mkdir -p deploy/Superelf.Domain
-        mkdir -p deploy/Superelf.Infrastructure
-        
-        # Copy necessary files
-        cp -r Superelf.API/Dockerfile deploy/Superelf.API/
-        cp -r backend-build/* deploy/
-        cp docker-compose.test.yml deploy/
-        cp Superelf.API/appsettings.*.json deploy/Superelf.API/ 2>/dev/null || true
-        
-        # Create a deploy script for better control
-        cat > deploy/deploy-backend.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        # Source environment variables
-        if [ -f .env ]; then
-          export $(grep -v '^#' .env | xargs)
-        fi
-        
-        # Prepare Dockerfile with correct copy commands for migrations
-        if [ -d "Superelf.Infrastructure/Migrations" ]; then
-          echo "Ensuring migrations are correctly copied in Dockerfile..."
-          # Check if we need to modify the Dockerfile to handle migrations properly
-          if grep -q "COPY \[\\"Superelf.Infrastructure/Migrations/" Superelf.API/Dockerfile; then
-            echo "Dockerfile already has migration copy commands"
+          
+          # Check if the API container exists
+          if docker ps -a | grep -q superelf-api-test; then
+            echo "Found existing API container, using it to apply migrations..."
+            docker exec superelf-api-test sh -c "dotnet ef database update --project /app/Superelf.Infrastructure/Superelf.Infrastructure.csproj --startup-project /app/Superelf.API/Superelf.API.csproj --context ApplicationDbContext" || echo "Migration command failed, will retry during container startup"
           else
-            # Create a backup of the original Dockerfile
-            cp Superelf.API/Dockerfile Superelf.API/Dockerfile.bak
-            
-            # Add a specific COPY command for migrations to ensure they're copied correctly
-            sed -i '/COPY . .\//a COPY ["Superelf.Infrastructure/Migrations/", "Superelf.Infrastructure/Migrations/"]' Superelf.API/Dockerfile
-            
-            echo "Modified Dockerfile to explicitly copy migrations"
+            echo "No API container exists, migrations will be applied during container startup"
           fi
-        fi
-        
-        # Make sure the database container is running
-        if ! docker ps | grep -q superelf-postgres-test; then
-          echo "Starting database container..."
-          docker-compose -f docker-compose.test.yml up -d postgres-test
-          
-          # Wait for the database to be ready
-          echo "Waiting for database to be ready..."
-          sleep 15
-        fi
-        
-        # Stop backend services
-        echo "Stopping existing backend services..."
-        docker-compose -f docker-compose.test.yml stop api-test || true
-        
-        # Remove old images but keep the database
-        echo "Cleaning up old images..."
-        docker image prune -f
-        docker rmi $(docker images "superelf-api-test*" -q) 2>/dev/null || true
-        
-        # Build backend with better error handling
-        echo "Building backend container..."
-        if ! docker-compose -f docker-compose.test.yml build api-test; then
-          echo "Docker build failed. Checking for migration issues..."
-          
-          # Check if we have duplicate migrations in context
-          echo "Listing migrations directory content:"
-          find Superelf.Infrastructure/Migrations -type f | sort
-          
-          echo "Attempting to rebuild with clean migrations..."
-          # In case of build failure, try cleaning up migrations on the server
-          for MIGRATION_NAME in $(find Superelf.Infrastructure/Migrations -name "*.cs" | sed 's/.*_\(.*\)\.cs/\1/' | sort | uniq); do
-            LATEST_FILE=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.cs 2>/dev/null | head -n 1)
-            LATEST_DESIGNER=$(ls -t Superelf.Infrastructure/Migrations/*_${MIGRATION_NAME}.Designer.cs 2>/dev/null | head -n 1)
-            
-            # Remove duplicates, keeping only the latest
-            for OLD_FILE in $(find Superelf.Infrastructure/Migrations -name "*_${MIGRATION_NAME}.cs" ! -path "$LATEST_FILE" 2>/dev/null); do
-              echo "Removing duplicate: $OLD_FILE"
-              rm -f "$OLD_FILE"
-            done
-            
-            for OLD_DESIGNER in $(find Superelf.Infrastructure/Migrations -name "*_${MIGRATION_NAME}.Designer.cs" ! -path "$LATEST_DESIGNER" 2>/dev/null); do
-              echo "Removing duplicate designer: $OLD_DESIGNER"
-              rm -f "$OLD_DESIGNER"
-            done
-          done
-          
-          # Try building again after cleanup
-          if ! docker-compose -f docker-compose.test.yml build api-test; then
-            echo "Build failed again after migration cleanup. Please check logs."
-            exit 1
-          fi
-        fi
-        
-        # Start the backend container
-        echo "Starting backend container..."
-        docker-compose -f docker-compose.test.yml up -d api-test
-        
-        # Wait for API to be healthy
-        echo "Waiting for API service to start..."
-        sleep 15
-        
-        # Check API status
-        echo "Testing API health..."
-        for i in {1..10}; do
-          if curl -f http://localhost:5001/api/diagnostics/ping; then
-            echo "API is healthy"
-            break
-          fi
-          if [ $i -eq 10 ]; then
-            echo "API failed to respond after 10 attempts"
-            exit 1
-          fi
-          echo "Attempt $i failed, retrying in 10 seconds..."
-          sleep 10
-        done
-        
-        echo "Backend deployment completed successfully"
-        EOF
-        
-        chmod +x deploy/deploy-backend.sh
-        
-        tar -czf backend.tar.gz -C deploy .
-        
-        # Copy to server
-        scp backend.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
-        
-        # Extract on server
-        ssh root@${{ secrets.SERVER_HOST }} '
-          cd /root/superelf-test
-          tar -xzf backend.tar.gz
-          rm backend.tar.gz
-          chmod +x deploy-backend.sh
         '
-      
+    
     - name: Deploy backend services
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          ./deploy-backend.sh
+          
+          # Stop backend services
+          echo "Stopping existing backend services..."
+          docker-compose -f docker-compose.test.yml stop api-test || true
+          
+          # Clean up old images but keep the database
+          echo "Cleaning up old images..."
+          docker image prune -f
+          docker rmi $(docker images "superelf-api-test*" -q) 2>/dev/null || true
+          
+          # Build and start new backend container
+          echo "Building and starting new backend container..."
+          docker-compose -f docker-compose.test.yml up -d --build api-test
+          
+          # Wait for API to be healthy
+          echo "Waiting for API service to start..."
+          sleep 15
+          
+          # Check API status
+          echo "Testing API health..."
+          for i in {1..10}; do
+            if curl -f http://localhost:5001/api/diagnostics/ping; then
+              echo "API is healthy"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "API failed to respond after 10 attempts"
+              exit 1
+            fi
+            echo "Attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
         '
-      
-    - name: Cleanup backend deploy
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa
-
-  deploy-frontend:
-    name: Deploy Frontend
-    runs-on: ubuntu-latest
-    needs: [frontend-build, deploy-backend]
     
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-      
-    - name: Download frontend artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-build
-        path: frontend-build
-      
-    - name: Copy frontend files
-      run: |
-        # Create archive with frontend files
-        mkdir -p deploy/Superelf.Web
-        cp -r Superelf.Web/Dockerfile deploy/Superelf.Web/
-        cp -r Superelf.Web/nginx.conf deploy/Superelf.Web/
-        cp -r frontend-build deploy/Superelf.Web/build
-        
-        # Create a deploy script for frontend
-        cat > deploy/deploy-frontend.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        # Source environment variables
-        if [ -f .env ]; then
-          export $(grep -v '^#' .env | xargs)
-        fi
-        
-        # Read service names from docker-compose
-        echo "Reading service names from docker-compose file..."
-        FRONTEND_SERVICE_NAME=$(grep -oP "^\s+frontend-test:|^\s+web:|^\s+frontend:" docker-compose.test.yml | head -1 | sed 's/://g' | xargs)
-        
-        if [ -z "$FRONTEND_SERVICE_NAME" ]; then
-          # Default to frontend-test if not found
-          FRONTEND_SERVICE_NAME="frontend-test"
-          echo "Frontend service name not found in docker-compose, using default: $FRONTEND_SERVICE_NAME"
-        else
-          echo "Found frontend service name: $FRONTEND_SERVICE_NAME"
-        fi
-        
-        # Stop frontend services
-        echo "Stopping existing frontend services..."
-        docker-compose -f docker-compose.test.yml stop $FRONTEND_SERVICE_NAME || true
-        
-        # Remove old images
-        echo "Cleaning up old frontend images..."
-        docker rmi $(docker images "superelf-$FRONTEND_SERVICE_NAME*" -q 2>/dev/null) || true
-        
-        # Build and start new frontend container
-        echo "Building and starting new frontend container..."
-        docker-compose -f docker-compose.test.yml up -d --build $FRONTEND_SERVICE_NAME
-        
-        # Check container status
-        echo "Checking container status..."
-        docker-compose -f docker-compose.test.yml ps
-        
-        echo "Frontend deployment completed successfully"
-        EOF
-        
-        chmod +x deploy/deploy-frontend.sh
-        
-        tar -czf frontend.tar.gz -C deploy .
-        
-        # Copy to server
-        scp frontend.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
-        
-        # Extract on server
-        ssh root@${{ secrets.SERVER_HOST }} '
-          cd /root/superelf-test
-          tar -xzf frontend.tar.gz
-          rm frontend.tar.gz
-          chmod +x deploy-frontend.sh
-        '
-      
     - name: Deploy frontend services
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          ./deploy-frontend.sh
+          
+          # Get frontend service name from docker-compose
+          FRONTEND_SERVICE_NAME=$(grep -oP "^\s+frontend-test:|^\s+web:|^\s+frontend:" docker-compose.test.yml | head -1 | sed "s/://g" | xargs)
+          
+          # Default to frontend-test if not found
+          if [ -z "$FRONTEND_SERVICE_NAME" ]; then
+            FRONTEND_SERVICE_NAME="frontend-test"
+          fi
+          
+          echo "Frontend service name: $FRONTEND_SERVICE_NAME"
+          
+          # Stop frontend services
+          docker-compose -f docker-compose.test.yml stop $FRONTEND_SERVICE_NAME || true
+          
+          # Clean up old frontend images
+          docker rmi $(docker images "superelf-$FRONTEND_SERVICE_NAME*" -q) 2>/dev/null || true
+          
+          # Build and start new frontend container
+          docker-compose -f docker-compose.test.yml up -d --build $FRONTEND_SERVICE_NAME
         '
-      
-    - name: Verify full deployment
+    
+    - name: Verify deployment
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
           
-          # Check all container statuses
-          echo "Checking all containers status..."
+          # Check container status
+          echo "Checking containers status..."
           docker-compose -f docker-compose.test.yml ps
           
-          # Check if API is still responding
+          # Final API health check
           echo "Final API health check..."
           if curl -f http://localhost:5001/api/diagnostics/ping; then
-            echo "✅ API is healthy"
+            echo "✅ API is healthy, deployment successful!"
           else
             echo "❌ API is not responding"
             exit 1
           fi
-          
-          echo "✅ Full deployment completed successfully"
         '
-      
-    - name: Cleanup frontend deploy
+    
+    - name: Cleanup
       if: always()
       run: |
         rm -f ~/.ssh/id_rsa
