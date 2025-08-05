@@ -7,9 +7,6 @@ WORKDIR /app
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy pre-built build/ directory if it exists (from deployment archive)
-COPY build /usr/share/nginx/html
-
 # If build/ is not present, fallback to building in Docker (for local/dev)
 FROM node:22-alpine AS build
 WORKDIR /app
