@@ -20,7 +20,7 @@ ARG REACT_APP_API_URL
 ARG REACT_APP_ENVIRONMENT
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
-RUN npm run build
+RUN CI=false npm run build
 
 # Final stage: use pre-built if present, else use built
 FROM nginx:alpine
