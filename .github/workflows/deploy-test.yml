@@ -129,6 +129,7 @@ jobs:
       run: |
         cd Superelf.Web
         npm ci
+        rm -rf build
         # Set CI=false to prevent ESLint errors from failing the build
         CI=false npm run build
     

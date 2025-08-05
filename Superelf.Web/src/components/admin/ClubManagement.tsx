@@ -6,6 +6,7 @@ interface ClubManagementProps {
   onSuccess: (message: string) => void;
 }
 
+
 export const ClubManagement: React.FC<ClubManagementProps> = ({ onError, onSuccess }) => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,11 @@ export const ClubManagement: React.FC<ClubManagementProps> = ({ onError, onSucce
     logoUrl: '',
     country: ''
   });
+
+  // Confirmation dialog state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     loadClubs();
@@ -71,22 +77,57 @@ export const ClubManagement: React.FC<ClubManagementProps> = ({ onError, onSucce
     }
   };
 
-  const handleDeleteClub = async (clubId: string) => {
 
-    setLoading(true);
-    try {
-      await adminService.deleteClub(clubId);
-      onSuccess('Club deleted successfully');
-      await loadClubs();
-    } catch (err: any) {
-      onError(err.message || 'Failed to delete club');
-    } finally {
-      setLoading(false);
-    }
+  const handleDeleteClub = (clubId: string) => {
+    setConfirmMessage('Are you sure you want to delete this club? This action cannot be undone.');
+    setOnConfirm(() => async () => {
+      setLoading(true);
+      try {
+        await adminService.deleteClub(clubId);
+        onSuccess('Club deleted successfully');
+        await loadClubs();
+      } catch (err: any) {
+        onError(err.message || 'Failed to delete club');
+      } finally {
+        setLoading(false);
+      }
+      setConfirmOpen(false);
+    });
+    setConfirmOpen(true);
+  };
+  // Simple confirmation dialog component
+  const ConfirmDialog: React.FC<{ open: boolean; message: string; onConfirm: () => void; onCancel: () => void }> = ({ open, message, onConfirm, onCancel }) => {
+    if (!open) return null;
+    return (
+      <div className="modal show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirm Action</h5>
+              <button type="button" className="btn-close" onClick={onCancel}></button>
+            </div>
+            <div className="modal-body">
+              <p>{message}</p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={onConfirm}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="container-fluid">
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmOpen}
+        message={confirmMessage}
+        onConfirm={() => onConfirm && onConfirm()}
+        onCancel={() => setConfirmOpen(false)}
+      />
       <div className="row mb-4">
         <div className="col-md-12">
           <h4>Club Management</h4>

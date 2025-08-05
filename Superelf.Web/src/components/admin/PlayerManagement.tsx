@@ -51,6 +51,11 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({ onError, onS
   const [bulkPlayersText, setBulkPlayersText] = useState('');
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
 
+  // Confirmation dialog state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
+
   useEffect(() => {
     loadData();
   }, [filter]);
@@ -117,17 +122,45 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({ onError, onS
     }
   };
 
-  const handleDeletePlayer = async (playerId: string) => {
-    setLoading(true);
-    try {
-      await adminService.deletePlayer(playerId);
-      onSuccess('Player deleted successfully');
-      await loadData();
-    } catch (err: any) {
-      onError(err.message || 'Failed to delete player');
-    } finally {
-      setLoading(false);
-    }
+  const handleDeletePlayer = (playerId: string) => {
+    setConfirmMessage('Are you sure you want to delete this player? This action cannot be undone.');
+    setOnConfirm(() => async () => {
+      setLoading(true);
+      try {
+        await adminService.deletePlayer(playerId);
+        onSuccess('Player deleted successfully');
+        await loadData();
+      } catch (err: any) {
+        onError(err.message || 'Failed to delete player');
+      } finally {
+        setLoading(false);
+      }
+      setConfirmOpen(false);
+    });
+    setConfirmOpen(true);
+  };
+  // Simple confirmation dialog component
+  const ConfirmDialog: React.FC<{ open: boolean; message: string; onConfirm: () => void; onCancel: () => void }> = ({ open, message, onConfirm, onCancel }) => {
+    if (!open) return null;
+    return (
+      <div className="modal show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirm Action</h5>
+              <button type="button" className="btn-close" onClick={onCancel}></button>
+            </div>
+            <div className="modal-body">
+              <p>{message}</p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={onConfirm}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const handleBulkCreate = async () => {
@@ -186,6 +219,13 @@ export const PlayerManagement: React.FC<PlayerManagementProps> = ({ onError, onS
   
   return (
     <div className="container-fluid">
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmOpen}
+        message={confirmMessage}
+        onConfirm={() => onConfirm && onConfirm()}
+        onCancel={() => setConfirmOpen(false)}
+      />
       <div className="row mb-4">
         <div className="col-md-12">
           <div className="d-flex justify-content-between align-items-center">
