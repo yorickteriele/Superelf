@@ -1,33 +1,33 @@
-# Multi-stage build for React app
-FROM node:22-alpine AS build
+
+# Multi-stage build for React app, but use pre-built build/ if available
+FROM nginx:alpine AS production
 
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Build the application
-ARG REACT_APP_API_URL
-ARG REACT_APP_ENVIRONMENT
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
-
-RUN npm run build
-
-# Production stage with nginx
-FROM nginx:alpine
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built app from build stage
+# Copy pre-built build/ directory if it exists (from deployment archive)
+COPY build /usr/share/nginx/html
+
+# If build/ is not present, fallback to building in Docker (for local/dev)
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+ARG REACT_APP_API_URL
+ARG REACT_APP_ENVIRONMENT
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
+RUN npm run build
+
+# Final stage: use pre-built if present, else use built
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Prefer pre-built build/ (from deployment archive), fallback to build stage
 COPY --from=build /app/build /usr/share/nginx/html
+COPY build /usr/share/nginx/html
 
 # Create a non-root user
 RUN addgroup -g 1001 -S superelf && \
