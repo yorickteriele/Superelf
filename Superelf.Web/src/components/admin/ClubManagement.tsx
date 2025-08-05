@@ -72,7 +72,6 @@ export const ClubManagement: React.FC<ClubManagementProps> = ({ onError, onSucce
   };
 
   const handleDeleteClub = async (clubId: string) => {
-    if (!window.confirm('Are you sure you want to delete this club?')) return;
 
     setLoading(true);
     try {
