@@ -14,6 +14,7 @@ COPY build /usr/share/nginx/html
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
+ARG CACHEBUST=1
 RUN npm ci
 COPY . .
 ARG REACT_APP_API_URL

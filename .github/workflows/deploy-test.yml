@@ -397,29 +397,18 @@ jobs:
           done
         '
     
-    - name: Deploy frontend services
+    - name: Build frontend-test (no cache)
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          
-          # Get frontend service name from docker-compose
-          FRONTEND_SERVICE_NAME=$(grep -oP "^\s+frontend-test:|^\s+web:|^\s+frontend:" docker-compose.test.yml | head -1 | sed "s/://g" | xargs)
-          
-          # Default to frontend-test if not found
-          if [ -z "$FRONTEND_SERVICE_NAME" ]; then
-            FRONTEND_SERVICE_NAME="frontend-test"
-          fi
-          
-          echo "Frontend service name: $FRONTEND_SERVICE_NAME"
-          
-          # Stop frontend services
-          docker-compose -f docker-compose.test.yml stop $FRONTEND_SERVICE_NAME || true
-          
-          # Clean up old frontend images
-          docker rmi $(docker images "superelf-$FRONTEND_SERVICE_NAME*" -q) 2>/dev/null || true
-          
-          # Build and start new frontend container
-          docker-compose -f docker-compose.test.yml up -d --build $FRONTEND_SERVICE_NAME
+          docker-compose -f docker-compose.test.yml build --no-cache frontend-test
+        '
+
+    - name: Start frontend-test
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          docker-compose -f docker-compose.test.yml up -d frontend-test
         '
     
     - name: Verify deployment
