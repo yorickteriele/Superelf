@@ -11,6 +11,7 @@ import { PlayerManagement } from '../components/admin/PlayerManagement';
 import { ClubManagement } from '../components/admin/ClubManagement';
 import { MatchManagement } from '../components/admin/MatchManagement';
 import { LeagueManagement } from '../components/admin/LeagueManagement';
+import { showConfirmDialog } from '../components/common/ConfirmDialog';
 
 const AdminPanel: React.FC = () => {
   const { user } = useAuth();
@@ -85,86 +86,52 @@ const AdminPanel: React.FC = () => {
   };
 
   // Confirmation dialog handlers
-  const handleMakeAdmin = (userId: string) => {
-    setConfirmMessage('Are you sure you want to make this user an admin?');
-    setOnConfirm(() => async () => {
-      try {
-        await adminService.makeUserAdmin(userId);
-        setSuccess('User promoted to admin successfully');
-        await loadUsers();
-      } catch (err: any) {
-        setError(err.message || 'Failed to make user admin');
-      }
-      setConfirmOpen(false);
-    });
-    setConfirmOpen(true);
+
+  const handleMakeAdmin = async (userId: string) => {
+    const confirmed = await showConfirmDialog('Are you sure you want to make this user an admin?');
+    if (!confirmed) return;
+    try {
+      await adminService.makeUserAdmin(userId);
+      setSuccess('User promoted to admin successfully');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.message || 'Failed to make user admin');
+    }
   };
 
-  const handleRemoveAdmin = (userId: string) => {
-    setConfirmMessage('Are you sure you want to remove admin privileges from this user?');
-    setOnConfirm(() => async () => {
-      try {
-        await adminService.removeUserAdmin(userId);
-        setSuccess('Admin privileges removed successfully');
-        await loadUsers();
-      } catch (err: any) {
-        setError(err.message || 'Failed to remove admin privileges');
-      }
-      setConfirmOpen(false);
-    });
-    setConfirmOpen(true);
+  const handleRemoveAdmin = async (userId: string) => {
+    const confirmed = await showConfirmDialog('Are you sure you want to remove admin privileges from this user?');
+    if (!confirmed) return;
+    try {
+      await adminService.removeUserAdmin(userId);
+      setSuccess('Admin privileges removed successfully');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.message || 'Failed to remove admin privileges');
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setConfirmMessage('Are you sure you want to delete this user? This action cannot be undone.');
-    setOnConfirm(() => async () => {
-      try {
-        await adminService.deleteUser(userId);
-        setSuccess('User deleted successfully');
-        await loadUsers();
-      } catch (err: any) {
-        setError(err.message || 'Failed to delete user');
-      }
-      setConfirmOpen(false);
-    });
-    setConfirmOpen(true);
+  const handleDeleteUser = async (userId: string) => {
+    const confirmed = await showConfirmDialog('Are you sure you want to delete this user? This action cannot be undone.');
+    if (!confirmed) return;
+    try {
+      await adminService.deleteUser(userId);
+      setSuccess('User deleted successfully');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete user');
+    }
   };
 
-  const handleCleanupDatabase = () => {
-    setConfirmMessage('Are you sure you want to cleanup the database? This will remove old incomplete data?');
-    setOnConfirm(() => async () => {
-      try {
-        const result = await adminService.cleanupDatabase();
-        setSuccess(result);
-      } catch (err: any) {
-        setError(err.message || 'Failed to cleanup database');
-      }
-      setConfirmOpen(false);
-    });
-    setConfirmOpen(true);
-  };
-  // Simple confirmation dialog component
-  const ConfirmDialog: React.FC<{ open: boolean; message: string; onConfirm: () => void; onCancel: () => void }> = ({ open, message, onConfirm, onCancel }) => {
-    if (!open) return null;
-    return (
-      <div className="modal show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex={-1}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Confirm Action</h5>
-              <button type="button" className="btn-close" onClick={onCancel}></button>
-            </div>
-            <div className="modal-body">
-              <p>{message}</p>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
-              <button type="button" className="btn btn-danger" onClick={onConfirm}>Confirm</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  const handleCleanupDatabase = async () => {
+    const confirmed = await showConfirmDialog('Are you sure you want to cleanup the database? This will remove old incomplete data?');
+    if (!confirmed) return;
+    try {
+      const result = await adminService.cleanupDatabase();
+      setSuccess(result);
+    } catch (err: any) {
+      setError(err.message || 'Failed to cleanup database');
+    }
   };
 
   const renderDashboard = () => (
@@ -455,13 +422,7 @@ const AdminPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Confirmation Dialog */}
-      <ConfirmDialog
-        open={confirmOpen}
-        message={confirmMessage}
-        onConfirm={() => onConfirm && onConfirm()}
-        onCancel={() => setConfirmOpen(false)}
-      />
+      {/* Confirmation Dialog removed: now using showConfirmDialog utility */}
 
       <div className="d-flex">
         {/* Sidebar */}
