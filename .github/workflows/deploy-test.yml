@@ -138,67 +138,23 @@ jobs:
     
     - name: Create deployment archive
       run: |
-        # Create a clean directory structure for the archive
-        mkdir -p deploy/Superelf.API/bin/Release
-        mkdir -p deploy/Superelf.Application/bin/Release
-        mkdir -p deploy/Superelf.Domain/bin/Release
-        mkdir -p deploy/Superelf.Infrastructure/bin/Release
-        mkdir -p deploy/Superelf.Web/build
-
-        # Copy backend binaries
-        cp -r Superelf.API/bin/Release/* deploy/Superelf.API/bin/Release/
-        cp -r Superelf.API/bin/Release/net8.0/publish deploy/Superelf.API/bin/Release/net8.0/publish
-        cp -r Superelf.Application/bin/Release/* deploy/Superelf.Application/bin/Release/
-        cp -r Superelf.Domain/bin/Release/* deploy/Superelf.Domain/bin/Release/
-        cp -r Superelf.Infrastructure/bin/Release/* deploy/Superelf.Infrastructure/bin/Release/
-
-        # Copy .csproj and source files
-        cp Superelf.API/Superelf.API.csproj deploy/Superelf.API/
-        cp -r Superelf.API/*.cs deploy/Superelf.API/ 2>/dev/null || true
-        cp -r Superelf.API/*.json deploy/Superelf.API/ 2>/dev/null || true
-
-        cp Superelf.Application/Superelf.Application.csproj deploy/Superelf.Application/
-        cp -r Superelf.Application/*.cs deploy/Superelf.Application/ 2>/dev/null || true
-        cp -r Superelf.Application/*.json deploy/Superelf.Application/ 2>/dev/null || true
-
-        cp Superelf.Domain/Superelf.Domain.csproj deploy/Superelf.Domain/
-        cp -r Superelf.Domain/*.cs deploy/Superelf.Domain/ 2>/dev/null || true
-        cp -r Superelf.Domain/*.json deploy/Superelf.Domain/ 2>/dev/null || true
-
-        cp Superelf.Infrastructure/Superelf.Infrastructure.csproj deploy/Superelf.Infrastructure/
-        cp -r Superelf.Infrastructure/*.cs deploy/Superelf.Infrastructure/ 2>/dev/null || true
-        cp -r Superelf.Infrastructure/*.json deploy/Superelf.Infrastructure/ 2>/dev/null || true
-
-        # Copy solution file
-        cp Superelf.Web.sln deploy/
-
-        # Copy frontend build (node-based, no source files)
-        cp -r Superelf.Web/build/* deploy/Superelf.Web/build/
-
-        # Copy Dockerfiles and configuration
-        cp -r Superelf.API/Dockerfile deploy/Superelf.API/
-        cp -r Superelf.Web/Dockerfile deploy/Superelf.Web/
-        cp -r Superelf.Web/nginx.conf deploy/Superelf.Web/
-        cp docker-compose.test.yml deploy/
-        cp -r Superelf.API/appsettings.*.json deploy/Superelf.API/
-        cp -r Superelf.Infrastructure/Migrations deploy/Superelf.Infrastructure/
-        cp Superelf.Infrastructure/Dockerfile.migrations deploy/Superelf.Infrastructure/
-
-        # Create the archive
-        tar --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='obj' \
-            --exclude='.vs' \
-            --exclude='.idea' \
-            --exclude='*.user' \
-            --exclude='*.log' \
-            --exclude='logs' \
-            --exclude='.vscode' \
-            --exclude='.nuget' \
-            --exclude='packages' \
-            --exclude='*.tmp' \
-            --exclude='*.temp' \
-            -czf superelf-test.tar.gz -C deploy .
+        mkdir -p deploy
+        rsync -av --exclude='Superelf.Web/node_modules' \
+                  --exclude='**/bin' \
+                  --exclude='**/obj' \
+                  --exclude='.git' \
+                  --exclude='.vs' \
+                  --exclude='.idea' \
+                  --exclude='.vscode' \
+                  --exclude='*.user' \
+                  --exclude='*.log' \
+                  --exclude='logs' \
+                  --exclude='.nuget' \
+                  --exclude='packages' \
+                  --exclude='*.tmp' \
+                  --exclude='*.temp' \
+                  ./ deploy/
+        tar -czf superelf-test.tar.gz -C deploy .
         
     - name: Upload deployment archive
       uses: actions/upload-artifact@v4
