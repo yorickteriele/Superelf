@@ -151,6 +151,10 @@ jobs:
         cp -r Superelf.Application/bin/Release/* deploy/Superelf.Application/bin/Release/
         cp -r Superelf.Domain/bin/Release/* deploy/Superelf.Domain/bin/Release/
         cp -r Superelf.Infrastructure/bin/Release/* deploy/Superelf.Infrastructure/bin/Release/
+        # Copy Superelf.Infrastructure project file and source files
+        cp Superelf.Infrastructure/Superelf.Infrastructure.csproj deploy/Superelf.Infrastructure/
+        cp -r Superelf.Infrastructure/*.cs deploy/Superelf.Infrastructure/ 2>/dev/null || true
+        cp -r Superelf.Infrastructure/*.json deploy/Superelf.Infrastructure/ 2>/dev/null || true
         
         # Copy frontend build
         cp -r Superelf.Web/build/* deploy/Superelf.Web/build/
