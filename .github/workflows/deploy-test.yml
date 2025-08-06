@@ -160,6 +160,9 @@ jobs:
         cp -r Superelf.Infrastructure/*.cs deploy/Superelf.Infrastructure/ 2>/dev/null || true
         cp -r Superelf.Infrastructure/*.json deploy/Superelf.Infrastructure/ 2>/dev/null || true
         
+        # Copy solution file
+        cp Superelf.Web.sln deploy/
+
         # Copy frontend build
         cp -r Superelf.Web/build/* deploy/Superelf.Web/build/
         
