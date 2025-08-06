@@ -268,19 +268,6 @@ jobs:
           fi
         '
 
-    - name: Move published API files to expected location
-      run: |
-        ssh root@${{ secrets.SERVER_HOST }} '
-          cd /root/superelf-test
-          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
-            mkdir -p bin/Release/net8.0/publish
-            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
-            echo "Published API files copied to build context."
-          else
-            echo "ERROR: Published API files not found or empty!" >&2
-            exit 1
-          fi
-        '
     
     - name: Check migration files on server
       run: |
@@ -355,19 +342,6 @@ jobs:
           docker rmi superelf-migrations-test || true
         '
 
-    - name: Move published API files to expected location
-      run: |
-        ssh root@${{ secrets.SERVER_HOST }} '
-          cd /root/superelf-test
-          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
-            mkdir -p bin/Release/net8.0/publish
-            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
-            echo "Published API files copied to build context."
-          else
-            echo "ERROR: Published API files not found or empty!" >&2
-            exit 1
-          fi
-        '
     
     - name: Deploy backend services
       run: |
@@ -386,10 +360,6 @@ jobs:
           # Build and start new backend container using static Dockerfile
           echo "Building and starting new backend container..."
           docker-compose -f docker-compose.test.yml up -d --build api-test
-
-          # Wait for API to be healthy
-          echo "Waiting for API service to start..."
-          sleep 15
         '
     
     - name: Build frontend-test (no cache)
