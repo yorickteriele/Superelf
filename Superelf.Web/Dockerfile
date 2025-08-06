@@ -1,30 +1,11 @@
-# Multi-stage build for React app
-FROM node:22-alpine AS build
-
-WORKDIR /app
-
-# Copy package files
-COPY . .
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Build the application
-ARG REACT_APP_API_URL
-ARG REACT_APP_ENVIRONMENT
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
-
-RUN npm run build
-
-# Production stage with nginx
+# Production stage with nginx - use pre-built files
 FROM nginx:alpine
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built app from build stage
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy pre-built app (built by GitHub Actions)
+COPY build /usr/share/nginx/html
 
 # Create a non-root user
 RUN addgroup -g 1001 -S superelf && \
@@ -42,5 +23,4 @@ USER superelf
 
 # Expose port
 EXPOSE 3000
-
 CMD ["nginx", "-g", "daemon off;"]
