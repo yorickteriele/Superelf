@@ -286,6 +286,12 @@ jobs:
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
           
+          # Optionally reset the database volume if RESET_DB is set
+          if [ "$RESET_DB" = "true" ]; then
+            echo "Resetting database volume..."
+            docker-compose -f docker-compose.test.yml down -v
+          fi
+          
           # Start database if not running
           if ! docker ps | grep -q superelf-postgres-test; then
             echo "Starting database container..."
