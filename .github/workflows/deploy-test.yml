@@ -148,6 +148,10 @@ jobs:
         # Copy backend files
         cp -r Superelf.API/bin/Release/* deploy/Superelf.API/bin/Release/
         cp -r Superelf.API/bin/Release/net8.0/publish deploy/Superelf.API/bin/Release/net8.0/publish
+        # Copy Superelf.API project file and source files
+        cp Superelf.API/Superelf.API.csproj deploy/Superelf.API/
+        cp -r Superelf.API/*.cs deploy/Superelf.API/ 2>/dev/null || true
+        cp -r Superelf.API/*.json deploy/Superelf.API/ 2>/dev/null || true
         cp -r Superelf.Application/bin/Release/* deploy/Superelf.Application/bin/Release/
         cp -r Superelf.Domain/bin/Release/* deploy/Superelf.Domain/bin/Release/
         cp -r Superelf.Infrastructure/bin/Release/* deploy/Superelf.Infrastructure/bin/Release/
