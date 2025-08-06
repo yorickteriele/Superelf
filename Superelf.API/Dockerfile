@@ -6,12 +6,6 @@ EXPOSE 8080
 
 # Stage 2: Build image
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["Superelf.API/Superelf.API.csproj", "Superelf.API/"]
-COPY ["Superelf.Application/Superelf.Application.csproj", "Superelf.Application/"]
-COPY ["Superelf.Domain/Superelf.Domain.csproj", "Superelf.Domain/"]
-COPY ["Superelf.Infrastructure/Superelf.Infrastructure.csproj", "Superelf.Infrastructure/"]
-RUN dotnet restore "Superelf.API/Superelf.API.csproj"
 COPY . .
 WORKDIR "/src/Superelf.API"
 RUN dotnet build "Superelf.API.csproj" -c Release -o /app/build
