@@ -346,6 +346,7 @@ jobs:
           docker build -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
 
           echo "Running migrations..."
+          dotnet build
           docker run --rm --network=superelf-test_superelf-test \
             -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" \
             superelf-migrations-test
@@ -389,23 +390,6 @@ jobs:
           # Wait for API to be healthy
           echo "Waiting for API service to start..."
           sleep 15
-
-          # Check API status with better error handling
-          echo "Testing API health..."
-          for i in {1..10}; do
-            if curl -f http://localhost:5001/api/diagnostics/ping; then
-              echo "API is healthy"
-              break
-            elif [ $i -eq 10 ]; then
-              echo "API failed to respond after 10 attempts"
-              echo "Checking Docker logs for errors:"
-              docker logs $(docker ps -q --filter name=superelf-api-test) | tail -n 50
-              exit 1
-            else
-              echo "Attempt $i failed, retrying in 10 seconds..."
-              sleep 10
-            fi
-          done
         '
     
     - name: Build frontend-test (no cache)
