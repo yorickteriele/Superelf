@@ -245,6 +245,34 @@ jobs:
           tar -xzf superelf-test.tar.gz
           rm superelf-test.tar.gz
         '
+
+    - name: Move published API files to expected location
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
+            mkdir -p bin/Release/net8.0/publish
+            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
+            echo "Published API files copied to build context."
+          else
+            echo "ERROR: Published API files not found or empty!" >&2
+            exit 1
+          fi
+        '
+
+    - name: Move published API files to expected location
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
+            mkdir -p bin/Release/net8.0/publish
+            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
+            echo "Published API files copied to build context."
+          else
+            echo "ERROR: Published API files not found or empty!" >&2
+            exit 1
+          fi
+        '
     
     - name: Check migration files on server
       run: |
@@ -307,25 +335,20 @@ jobs:
 
           # Build and run migrations container using permanent Dockerfile
           echo "Building migrations container..."
-          docker build -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
-
-          echo "Running migrations..."
-          docker run --rm --network=superelf-test_superelf-test \
-            -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" \
-            superelf-migrations-test
-
-          # Cleanup
-          docker rmi superelf-migrations-test || true
-        '
 
     - name: Move published API files to expected location
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          mkdir -p bin/Release/net8.0/publish
-          cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
+          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
+            mkdir -p bin/Release/net8.0/publish
+            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
+            echo "Published API files copied to build context."
+          else
+            echo "ERROR: Published API files not found or empty!" >&2
+            exit 1
+          fi
         '
-
     
     - name: Deploy backend services
       run: |
