@@ -255,22 +255,7 @@ jobs:
           rm superelf-test.tar.gz
           ls /root/superelf-test
         '
-
-    - name: Move published API files to expected location
-      run: |
-        ssh root@${{ secrets.SERVER_HOST }} '
-          cd /root/superelf-test
-          if [ -d "Superelf.API/bin/Release/net8.0/publish" ] && [ "$(ls -A Superelf.API/bin/Release/net8.0/publish)" ]; then
-            mkdir -p bin/Release/net8.0/publish
-            cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
-            echo "Published API files copied to build context."
-          else
-            echo "ERROR: Published API files not found or empty!" >&2
-            exit 1
-          fi
-        '
-
-    
+        
     - name: Check migration files on server
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
