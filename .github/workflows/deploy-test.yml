@@ -244,18 +244,21 @@ jobs:
     
     - name: Copy deployment package to server
       run: |
+        # Clean server directory first
+        ssh root@${{ secrets.SERVER_HOST }} 'rm -rf /root/superelf-test/*'
+
         # Copy to server
         scp superelf-test.tar.gz root@${{ secrets.SERVER_HOST }}:/root/superelf-test/
-        
+
         # Extract on server
         ssh root@${{ secrets.SERVER_HOST }} '
-          rm -rf /root/superelf-test/*
           cd /root/superelf-test
           tar -xzf superelf-test.tar.gz
           rm superelf-test.tar.gz
           ls /root/superelf-test
         '
-        
+
+
     - name: Check migration files on server
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
