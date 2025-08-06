@@ -292,7 +292,8 @@ jobs:
 
           echo "Running migrations..."
           docker run --rm --network=superelf-test_superelf-test \
-            -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" \
+            -e ASPNETCORE_ENVIRONMENT=Test \
+            -e ConnectionStrings__DefaultConnection="Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${TEST_DB_PASSWORD}" \
             superelf-migrations-test
 
           # Cleanup
