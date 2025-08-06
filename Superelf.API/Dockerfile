@@ -5,6 +5,9 @@ WORKDIR /app
 # Install PostgreSQL client and curl (for health checks)
 RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/lib/apt/lists/*
 
+# Debug: List contents of build context before COPY
+RUN ls -l /app && ls -l / && ls -l Superelf.API/bin/Release/net8.0 || true
+
 # Copy pre-built published files (built by GitHub Actions)
 COPY Superelf.API/bin/Release/net8.0/publish/ .
 
