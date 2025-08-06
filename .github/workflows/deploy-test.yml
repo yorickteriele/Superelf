@@ -120,6 +120,7 @@ jobs:
       run: |
         dotnet restore Superelf.Web.sln
         dotnet build Superelf.Web.sln --configuration Release --no-restore
+        dotnet publish Superelf.API/Superelf.API.csproj -c Release -o Superelf.API/bin/Release/net8.0/publish
     
     - name: Setup frontend environment
       run: |
@@ -146,6 +147,7 @@ jobs:
         
         # Copy backend files
         cp -r Superelf.API/bin/Release/* deploy/Superelf.API/bin/Release/
+        cp -r Superelf.API/bin/Release/net8.0/publish deploy/Superelf.API/bin/Release/net8.0/publish
         cp -r Superelf.Application/bin/Release/* deploy/Superelf.Application/bin/Release/
         cp -r Superelf.Domain/bin/Release/* deploy/Superelf.Domain/bin/Release/
         cp -r Superelf.Infrastructure/bin/Release/* deploy/Superelf.Infrastructure/bin/Release/
@@ -228,11 +230,8 @@ jobs:
           mkdir -p /root/superelf-test
           cd /root/superelf-test
 
-          # Create environment file
-          cat > .env << 'EOF'
-          TEST_DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}
-          TEST_JWT_SECRET=${{ secrets.TEST_JWT_SECRET }}
-          EOF
+          echo 'TEST_DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}' > .env
+          echo 'TEST_JWT_SECRET=${{ secrets.TEST_JWT_SECRET }}' >> .env
         "
     
     - name: Copy deployment package to server
@@ -293,8 +292,13 @@ jobs:
             docker-compose -f docker-compose.test.yml down -v
           fi
 
-          # Start database if not running
-          if ! docker ps | grep -q superelf-postgres-test; then
+          # Ensure the Docker network exists and start database if not running
+          if ! docker network inspect superelf-test >/dev/null 2>&1; then
+            echo "Creating Docker network superelf-test by starting postgres-test..."
+            docker-compose -f docker-compose.test.yml up -d postgres-test
+            echo "Waiting for database to be ready..."
+            sleep 15
+          elif ! docker ps | grep -q superelf-postgres-test; then
             echo "Starting database container..."
             docker-compose -f docker-compose.test.yml up -d postgres-test
             echo "Waiting for database to be ready..."
@@ -312,6 +316,14 @@ jobs:
 
           # Cleanup
           docker rmi superelf-migrations-test || true
+        '
+
+    - name: Move published API files to expected location
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          mkdir -p bin/Release/net8.0/publish
+          cp -r Superelf.API/bin/Release/net8.0/publish/* bin/Release/net8.0/publish/
         '
 
     
