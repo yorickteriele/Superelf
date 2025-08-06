@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built published files (built by GitHub Actions)
-COPY bin/Release/net8.0/publish/ .
+COPY /Superelf.API/bin/Release/net8.0/publish/ .
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 superelf && \

@@ -249,9 +249,11 @@ jobs:
         
         # Extract on server
         ssh root@${{ secrets.SERVER_HOST }} '
+          rm -rf /root/superelf-test/*
           cd /root/superelf-test
           tar -xzf superelf-test.tar.gz
           rm superelf-test.tar.gz
+          ls /root/superelf-test
         '
 
     - name: Move published API files to expected location
