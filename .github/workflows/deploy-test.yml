@@ -293,8 +293,8 @@ jobs:
           fi
 
           # Ensure the Docker network exists and start database if not running
-          if ! docker network inspect superelf-test >/dev/null 2>&1; then
-            echo "Creating Docker network superelf-test by starting postgres-test..."
+          if ! docker network inspect superelf-test_superelf-test >/dev/null 2>&1; then
+            echo "Creating Docker network superelf-test_superelf-test by starting postgres-test..."
             docker-compose -f docker-compose.test.yml up -d postgres-test
             echo "Waiting for database to be ready..."
             sleep 15
