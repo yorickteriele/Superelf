@@ -314,7 +314,7 @@ jobs:
           docker build -t superelf-migrations-test -f Dockerfile.migrations .
           
           echo "Running migrations..."
-          docker run --rm --network=superelf-test-network -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=superelf;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" superelf-migrations-test
+          docker run --rm --network=superelf-test -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" superelf-migrations-test
           
           # Cleanup
           docker rmi superelf-migrations-test || true
