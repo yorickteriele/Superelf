@@ -224,16 +224,16 @@ jobs:
     
     - name: Create deployment directory
       run: |
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
           mkdir -p /root/superelf-test
           cd /root/superelf-test
-          
+
           # Create environment file
-          cat > .env << EOF
+          cat > .env << 'EOF'
           TEST_DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}
           TEST_JWT_SECRET=${{ secrets.TEST_JWT_SECRET }}
           EOF
-        '
+        "
     
     - name: Copy deployment package to server
       run: |
@@ -319,62 +319,24 @@ jobs:
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
-          
-          # Create a special Dockerfile for the API that will ignore migration errors
-          cat > Superelf.API/Dockerfile.modified << EOF
-          FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-          WORKDIR /app
-          EXPOSE 80
 
-          FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-          WORKDIR /src
-          COPY ["Superelf.API/Superelf.API.csproj", "Superelf.API/"]
-          COPY ["Superelf.Application/Superelf.Application.csproj", "Superelf.Application/"]
-          COPY ["Superelf.Domain/Superelf.Domain.csproj", "Superelf.Domain/"]
-          COPY ["Superelf.Infrastructure/Superelf.Infrastructure.csproj", "Superelf.Infrastructure/"]
-          RUN dotnet restore "Superelf.API/Superelf.API.csproj"
-          COPY . .
-          
-          # Special handling for migrations
-          RUN if [ -d "Superelf.Infrastructure/Migrations" ]; then \\
-                echo "Checking migrations before build..."; \\
-                find Superelf.Infrastructure/Migrations -type f -name "*.cs" | sort; \\
-                # Remove all Designer.cs files and will be regenerated properly
-                find Superelf.Infrastructure/Migrations -name "*.Designer.cs" -delete; \\
-              fi
-          
-          WORKDIR "/src/Superelf.API"
-          RUN dotnet build "Superelf.API.csproj" -c Release -o /app/build
-
-          FROM build AS publish
-          RUN dotnet publish "Superelf.API.csproj" -c Release -o /app/publish
-
-          FROM base AS final
-          WORKDIR /app
-          COPY --from=publish /app/publish .
-          ENTRYPOINT ["dotnet", "Superelf.API.dll"]
-          EOF
-          
-          # Use the modified Dockerfile
-          cp Superelf.API/Dockerfile.modified Superelf.API/Dockerfile
-          
           # Stop backend services
           echo "Stopping existing backend services..."
           docker-compose -f docker-compose.test.yml stop api-test || true
-          
+
           # Clean up old images but keep the database
           echo "Cleaning up old images..."
           docker image prune -f
           docker rmi $(docker images "superelf-api-test*" -q) 2>/dev/null || true
-          
-          # Build and start new backend container
+
+          # Build and start new backend container using static Dockerfile
           echo "Building and starting new backend container..."
           docker-compose -f docker-compose.test.yml up -d --build api-test
-          
+
           # Wait for API to be healthy
           echo "Waiting for API service to start..."
           sleep 15
-          
+
           # Check API status with better error handling
           echo "Testing API health..."
           for i in {1..10}; do
