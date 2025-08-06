@@ -160,6 +160,7 @@ jobs:
         cp docker-compose.test.yml deploy/
         cp -r Superelf.API/appsettings.*.json deploy/Superelf.API/
         cp -r Superelf.Infrastructure/Migrations deploy/Superelf.Infrastructure/
+        cp Superelf.Infrastructure/Dockerfile.migrations deploy/Superelf.Infrastructure/
         
         # Create the archive
         tar --exclude='.git' \
