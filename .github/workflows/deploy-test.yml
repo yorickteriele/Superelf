@@ -226,7 +226,8 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
           mkdir -p /root/superelf-test
           cd /root/superelf-test
-          
+          # Remove all old files before extracting new package
+          rm -rf /root/superelf-test/*
           # Create environment file
           cat > .env << EOF
           TEST_DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}
