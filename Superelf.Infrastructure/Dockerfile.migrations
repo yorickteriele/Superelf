@@ -1,0 +1,9 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /app
+COPY . .
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+# Optionally list migration files for debugging
+RUN find Superelf.Infrastructure/Migrations -type f -name "*.cs" | sort
+CMD ["dotnet", "ef", "database", "update", "--project", "Superelf.Infrastructure/Superelf.Infrastructure.csproj", "--startup-project", "Superelf.API/Superelf.API.csproj"]

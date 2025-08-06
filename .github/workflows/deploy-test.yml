@@ -283,7 +283,7 @@ jobs:
         
     - name: Apply database migrations
       run: |
-        ssh root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
+        ssh root@${{ secrets.SERVER_HOST }} '
           cd /root/superelf-test
 
           # Optionally reset the database volume if RESET_DB is set
@@ -300,20 +300,9 @@ jobs:
             sleep 15
           fi
 
-          # Create a temporary Dockerfile for migrations
-          cat > Dockerfile.migrations <<'EOF'
-          FROM mcr.microsoft.com/dotnet/sdk:8.0
-          WORKDIR /app
-          COPY . .
-          RUN dotnet tool install --global dotnet-ef
-          ENV PATH="${PATH}:/root/.dotnet/tools"
-          RUN find Superelf.Infrastructure/Migrations -type f -name "*.cs" | sort
-          CMD ["dotnet", "ef", "database", "update", "--project", "Superelf.Infrastructure/Superelf.Infrastructure.csproj", "--startup-project", "Superelf.API/Superelf.API.csproj"]
-          EOF
-
-          # Build and run migrations container
+          # Build and run migrations container using permanent Dockerfile
           echo "Building migrations container..."
-          docker build -t superelf-migrations-test -f Dockerfile.migrations .
+          docker build -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
 
           echo "Running migrations..."
           docker run --rm --network=superelf-test \
@@ -322,8 +311,7 @@ jobs:
 
           # Cleanup
           docker rmi superelf-migrations-test || true
-          rm Dockerfile.migrations
-        ENDSSH
+        '
 
     
     - name: Deploy backend services
