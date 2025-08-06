@@ -335,6 +335,16 @@ jobs:
 
           # Build and run migrations container using permanent Dockerfile
           echo "Building migrations container..."
+          docker build -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
+
+          echo "Running migrations..."
+          docker run --rm --network=superelf-test_superelf-test \
+            -e "ConnectionStrings__DefaultConnection=Server=postgres-test;Port=5432;Database=SuperelfDbTest;User Id=postgres;Password=${{ secrets.TEST_DB_PASSWORD }}" \
+            superelf-migrations-test
+
+          # Cleanup
+          docker rmi superelf-migrations-test || true
+        '
 
     - name: Move published API files to expected location
       run: |
