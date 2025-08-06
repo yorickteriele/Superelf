@@ -269,8 +269,8 @@ jobs:
 
           # Optionally reset the database volume if RESET_DB is set
           if [ "$RESET_DB" = "true" ]; then
-            echo "Resetting database volume..."
-            docker-compose -f docker-compose.test.yml down -v
+            echo "Clearing all configs and code files, but persisting database and its data..."
+            docker-compose -f docker-compose.test.yml down
           fi
 
           # Ensure the Docker network exists and start database if not running
