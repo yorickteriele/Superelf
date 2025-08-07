@@ -5,6 +5,7 @@ public class LineupLine {
     public Lineup? Lineup { get; set; }
     public required FootballPlayer FootballPlayer { get; set; }
     public bool IsReserve { get; set; }
+    public int SpecificPosition { get; set; } // left to right
     
     public bool IsJoker { get; set; }
 }

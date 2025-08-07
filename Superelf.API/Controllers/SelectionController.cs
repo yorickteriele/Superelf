@@ -50,42 +50,86 @@ public class SelectionController : ControllerBase
                 selectionDto.JokerPlayerId = player.Id;
             }
 
-            if (line.IsReserve)
-                switch (player.Position.ToLower())
+            // Create SelectedPlayerDto with full player information
+            var selectedPlayerDto = new SelectedPlayerDto
+            {
+                PlayerId = player.Id,
+                Player = new FootballPlayerDto
                 {
-                    case "goalkeeper":
-                        selectionDto.SelectedReserveGoalkeeper = player.Id;
+                    Id = player.Id,
+                    Name = player.Name,
+                    Position = player.Position,
+                    Nationality = player.Nationality,
+                    Club = player.Club,
+                    ClubId = player.ClubId,
+                    PhotoUrl = player.PhotoUrl,
+                    CreatedAt = player.CreatedAt,
+                    SpecificPosition = line.SpecificPosition,
+                    IsJoker = line.IsJoker
+                },
+                SpecificPosition = line.SpecificPosition,
+                IsJoker = line.IsJoker,
+                PositionName = GetPositionName(line.SpecificPosition, line.IsReserve)
+            };
+
+            // Map players to their specific positions based on formation
+            if (!line.IsReserve)
+            {
+                switch (player.Position)
+                {
+                    case "Goalkeeper":
+                        selectionDto.SelectedBasisGoalkeeper = selectedPlayerDto;
                         break;
-                    case "defender":
-                        selectionDto.SelectedReserveDefender = player.Id;
+                    case "Defender":
+                        // Ensure we have enough space in the list
+                        while (selectionDto.SelectedBasisDefenders.Count <= 3)
+                            selectionDto.SelectedBasisDefenders.Add(null);
+                        // Map specific positions to array indices: 2->0, 3->1, 4->2, 5->3
+                        var defenderIndex = line.SpecificPosition - 2;
+                        if (defenderIndex >= 0 && defenderIndex < 4)
+                            selectionDto.SelectedBasisDefenders[defenderIndex] = selectedPlayerDto;
                         break;
-                    case "midfielder":
-                        selectionDto.SelectedReserveMidfielder = player.Id;
+                    case "Midfielder":
+                        while (selectionDto.SelectedBasisMidfielders.Count <= 2)
+                            selectionDto.SelectedBasisMidfielders.Add(null);
+                        // Map specific positions to array indices: 6->0, 7->1, 8->2
+                        var midfielderIndex = line.SpecificPosition - 6;
+                        if (midfielderIndex >= 0 && midfielderIndex < 3)
+                            selectionDto.SelectedBasisMidfielders[midfielderIndex] = selectedPlayerDto;
                         break;
-                    case "forward":
-                        selectionDto.SelectedReserveForward = player.Id;
+                    case "Forward":
+                        while (selectionDto.SelectedBasisForwards.Count <= 2)
+                            selectionDto.SelectedBasisForwards.Add(null);
+                        // Map specific positions to array indices: 9->0, 10->1, 11->2
+                        var forwardIndex = line.SpecificPosition - 9;
+                        if (forwardIndex >= 0 && forwardIndex < 3)
+                            selectionDto.SelectedBasisForwards[forwardIndex] = selectedPlayerDto;
                         break;
                 }
+            }
             else
-                switch (player.Position.ToLower())
+            {
+                // Handle reserve players
+                switch (player.Position)
                 {
-                    case "goalkeeper":
-                        selectionDto.SelectedBasisGoalkeeper = player.Id;
+                    case "Goalkeeper":
+                        selectionDto.SelectedReserveGoalkeeper = selectedPlayerDto;
                         break;
-                    case "defender":
-                        selectionDto.SelectedBasisDefenders.Add(player.Id);
+                    case "Defender":
+                        selectionDto.SelectedReserveDefender = selectedPlayerDto;
                         break;
-                    case "midfielder":
-                        selectionDto.SelectedBasisMidfielders.Add(player.Id);
+                    case "Midfielder":
+                        selectionDto.SelectedReserveMidfielder = selectedPlayerDto;
                         break;
-                    case "forward":
-                        selectionDto.SelectedBasisForwards.Add(player.Id);
+                    case "Forward":
+                        selectionDto.SelectedReserveForward = selectedPlayerDto;
                         break;
                 }
+            }
         }
 
-        // Get all players by position
-        var goalkeepers = await _selectionService.GetFootballPlayersByPosition("GoalKeeper");
+        // Get available players for each position
+        var goalkeepers = await _selectionService.GetFootballPlayersByPosition("Goalkeeper");
         var defenders = await _selectionService.GetFootballPlayersByPosition("Defender");
         var midfielders = await _selectionService.GetFootballPlayersByPosition("Midfielder");
         var forwards = await _selectionService.GetFootballPlayersByPosition("Forward");
@@ -99,7 +143,9 @@ public class SelectionController : ControllerBase
             Club = p.Club,
             ClubId = p.ClubId,
             PhotoUrl = p.PhotoUrl,
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            SpecificPosition = null,
+            IsJoker = false
         }).ToList();
 
         selectionDto.Defenders = defenders.Select(p => new FootballPlayerDto
@@ -111,7 +157,9 @@ public class SelectionController : ControllerBase
             Club = p.Club,
             ClubId = p.ClubId,
             PhotoUrl = p.PhotoUrl,
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            SpecificPosition = null,
+            IsJoker = false
         }).ToList();
 
         selectionDto.Midfielders = midfielders.Select(p => new FootballPlayerDto
@@ -123,7 +171,9 @@ public class SelectionController : ControllerBase
             Club = p.Club,
             ClubId = p.ClubId,
             PhotoUrl = p.PhotoUrl,
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            SpecificPosition = null,
+            IsJoker = false
         }).ToList();
 
         selectionDto.Forwards = forwards.Select(p => new FootballPlayerDto
@@ -135,10 +185,43 @@ public class SelectionController : ControllerBase
             Club = p.Club,
             ClubId = p.ClubId,
             PhotoUrl = p.PhotoUrl,
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            SpecificPosition = null,
+            IsJoker = false
         }).ToList();
 
         return Ok(selectionDto);
+    }
+
+    private string GetPositionName(int specificPosition, bool isReserve)
+    {
+        if (isReserve)
+        {
+            return specificPosition switch
+            {
+                100 => "Reserve Goalkeeper",
+                101 => "Reserve Defender",
+                102 => "Reserve Midfielder",
+                103 => "Reserve Forward",
+                _ => "Reserve Player"
+            };
+        }
+
+        return specificPosition switch
+        {
+            1 => "Goalkeeper",
+            2 => "Left Back",
+            3 => "Left Center Back",
+            4 => "Right Center Back",
+            5 => "Right Back",
+            6 => "Left Midfielder",
+            7 => "Center Midfielder",
+            8 => "Right Midfielder",
+            9 => "Left Wing",
+            10 => "Center Forward",
+            11 => "Right Wing",
+            _ => "Player"
+        };
     }
 
     [HttpPost("{poolId}/submit")]
@@ -155,7 +238,8 @@ public class SelectionController : ControllerBase
                 submitDto.Position,
                 submitDto.IsReserve,
                 submitDto.SelectedPlayers,
-                submitDto.IsJoker
+                submitDto.IsJoker,
+                submitDto.SlotIndex
             );
 
             return Ok($"{submitDto.SelectedPlayers.Count} player(s) added to your selection.");

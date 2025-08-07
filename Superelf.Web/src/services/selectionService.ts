@@ -6,6 +6,19 @@ export interface FootballPlayerDto {
   position: string;
   nationality: string;
   club?: string;
+  clubId?: string;
+  photoUrl?: string;
+  createdAt: string;
+  specificPosition?: number; // New field for specific position
+  isJoker?: boolean; // New field to indicate if player is joker
+}
+
+export interface SelectedPlayerDto {
+  playerId: string;
+  player: FootballPlayerDto;
+  specificPosition: number;
+  isJoker: boolean;
+  positionName: string; // Human readable position name
 }
 
 export interface SelectionDto {
@@ -17,15 +30,15 @@ export interface SelectionDto {
   hasJoker: boolean;
   jokerPlayerId?: string;
   
-  selectedBasisGoalkeeper?: string;
-  selectedBasisDefenders: string[];
-  selectedBasisMidfielders: string[];
-  selectedBasisForwards: string[];
+  selectedBasisGoalkeeper?: SelectedPlayerDto;
+  selectedBasisDefenders: (SelectedPlayerDto | null)[];
+  selectedBasisMidfielders: (SelectedPlayerDto | null)[];
+  selectedBasisForwards: (SelectedPlayerDto | null)[];
   
-  selectedReserveGoalkeeper?: string;
-  selectedReserveDefender?: string;
-  selectedReserveMidfielder?: string;
-  selectedReserveForward?: string;
+  selectedReserveGoalkeeper?: SelectedPlayerDto;
+  selectedReserveDefender?: SelectedPlayerDto;
+  selectedReserveMidfielder?: SelectedPlayerDto;
+  selectedReserveForward?: SelectedPlayerDto;
   
   goalkeepers: FootballPlayerDto[];
   defenders: FootballPlayerDto[];
@@ -51,6 +64,7 @@ export interface SubmitSelectionDto {
   isReserve: boolean;
   selectedPlayers: string[];
   isJoker: boolean;
+  slotIndex?: number; // New field to track which slot was clicked
 }
 
 export interface SetJokerDto {

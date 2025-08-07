@@ -5,7 +5,6 @@ using Superelf.Application.Authentication;
 using Superelf.Application.Pool;
 using Superelf.Domain.Entities;
 using Superelf.API.DTOs;
-using Superelf.API.Hubs;
 
 namespace Superelf.API.Controllers;
 
@@ -16,19 +15,16 @@ public class PoolsController : ControllerBase
 {
     private readonly AuthenticationService _authenticationService;
     private readonly ILogger<PoolsController> _logger;
-    private readonly IHubContext<PoolHub> _poolHub;
     private readonly PoolService _poolService;
 
     public PoolsController(
         ILogger<PoolsController> logger,
         PoolService poolService,
-        AuthenticationService authenticationService,
-        IHubContext<PoolHub> poolHub)
+        AuthenticationService authenticationService)
     {
         _logger = logger;
         _poolService = poolService;
         _authenticationService = authenticationService;
-        _poolHub = poolHub;
     }
 
     [HttpGet]
@@ -108,13 +104,6 @@ public class PoolsController : ControllerBase
                 return BadRequest("Invalid code or already a member");
             }
 
-            var pool = await _poolService.GetPoolByCodeAsync(joinPoolDto.PoolCode);
-            
-            if (pool != null)
-            {
-                await _poolHub.Clients.Group(pool.Id.ToString()).SendAsync("LeaderboardUpdated");
-            }
-            
             return Ok("Successfully joined pool");
         }
         catch (Exception ex)
@@ -186,7 +175,6 @@ public class PoolsController : ControllerBase
         var result = await _poolService.EditPoolNameAsync(poolId, editDto.NewName, user);
         if (result)
         {
-            await _poolHub.Clients.Group(poolId.ToString()).SendAsync("PoolUpdated");
             return Ok("Pool name updated successfully");
         }
 
@@ -202,7 +190,6 @@ public class PoolsController : ControllerBase
         var result = await _poolService.RemoveParticipantAsync(poolId, userId, user);
         if (result)
         {
-            await _poolHub.Clients.Group(poolId.ToString()).SendAsync("PoolUpdated");
             return Ok("Participant removed successfully");
         }
 
