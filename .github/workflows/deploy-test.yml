@@ -225,7 +225,7 @@ jobs:
           rm superelf-test.tar.gz
           ls /root/superelf-test
         '
-        
+
     - name: Inject Google Calendar API Key
       run: |
         ssh root@${{ secrets.SERVER_HOST }} '
@@ -289,10 +289,6 @@ jobs:
             echo "Waiting for database to be ready..."
             sleep 15
           fi
-
-          echo "Dropping and recreating test database..."
-          docker exec superelf-postgres-test psql -U postgres -c "DROP DATABASE IF EXISTS \"SuperelfDbTest\";"
-          docker exec superelf-postgres-test psql -U postgres -c "CREATE DATABASE \"SuperelfDbTest\";"
 
           echo "Building migrations container..."
           docker build --no-cache -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .

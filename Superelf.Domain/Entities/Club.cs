@@ -12,4 +12,7 @@ public class Club
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public List<FootballPlayer> Players { get; set; } = new();
+
+    // TEMP: For migration test
+    public string? MigrationTestColumn { get; set; }
 }

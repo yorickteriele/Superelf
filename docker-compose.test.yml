@@ -5,7 +5,7 @@ services:
   postgres-test:
     image: postgres:15-alpine
     container_name: superelf-postgres-test
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: SuperelfDbTest
       POSTGRES_USER: postgres
@@ -28,7 +28,7 @@ services:
       context: .
       dockerfile: Superelf.API/Dockerfile
     container_name: superelf-api-test
-    restart: always
+    restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Test
       ConnectionStrings__DefaultConnection: "Host=postgres-test;Port=5432;Database=SuperelfDbTest;Username=postgres;Password=${TEST_DB_PASSWORD}"
@@ -59,7 +59,7 @@ services:
         REACT_APP_API_URL: /api
         REACT_APP_ENVIRONMENT: test
     container_name: superelf-frontend-test
-    restart: always
+    restart: unless-stopped
     networks:
       - superelf-test
     ports:

@@ -5,8 +5,6 @@ WORKDIR /app
 COPY . .
 COPY Superelf.API/appsettings*.json Superelf.API/
 
-ENV ASPNETCORE_ENVIRONMENT=Test
-
 # Install EF Core tools
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="${PATH}:/root/.dotnet/tools"
