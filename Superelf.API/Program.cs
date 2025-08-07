@@ -69,6 +69,19 @@ builder.Services.AddScoped<PoolService>();
 builder.Services.AddScoped<ISelectionRepository, SelectionRepository>();
 builder.Services.AddScoped<SelectionService>();
 
+// Register CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000" })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -83,6 +96,8 @@ using (var scope = app.Services.CreateScope())
         Environment.Exit(0);
 }
 
+// Use CORS before authentication/authorization
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
