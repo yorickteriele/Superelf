@@ -5,6 +5,6 @@ namespace Superelf.Application.Authentication;
 
 public interface IJwtService
 {
-    string GenerateToken(ApplicationUser user);
+    Task<string> GenerateTokenAsync(ApplicationUser user);
     ClaimsPrincipal GetPrincipalFromToken(string token);
 }

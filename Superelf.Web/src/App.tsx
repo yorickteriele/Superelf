@@ -20,6 +20,7 @@ import NotFound from './pages/NotFound';
 import Pools from './pages/Pools';
 import PoolDetail from './pages/PoolDetail';
 import Selection from './pages/Selection';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   // Add data-bs-theme attribute to body
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/pools/:poolId" element={<PoolDetail />} />
                 <Route path="/pools/:poolId/selection" element={<Selection />} />
                 <Route path="/pools/:poolId/selection/:userId" element={<Selection />} />
+                <Route path="/admin" element={<AdminPanel />} />
               </Route>
               
               {/* 404 Page */}

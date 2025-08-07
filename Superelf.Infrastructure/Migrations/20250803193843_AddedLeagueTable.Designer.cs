@@ -12,8 +12,8 @@ using Superelf.Infrastructure.Data;
 namespace Superelf.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250802215350_Initial")]
-    partial class Initial
+    [Migration("20250803193843_AddedLeagueTable")]
+    partial class AddedLeagueTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,13 +53,13 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "96a70d3c-0c2b-43f7-866f-51496350c371",
+                            Id = "550e8400-e29b-41d4-a716-446655440000",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "9bfd11f3-1427-45aa-a263-eff9770aeda8",
+                            Id = "550e8400-e29b-41d4-a716-446655440001",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -154,8 +154,8 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "8bb5a494-cb37-4861-b92e-f6e94439d990",
-                            RoleId = "96a70d3c-0c2b-43f7-866f-51496350c371"
+                            UserId = "550e8400-e29b-41d4-a716-446655440002",
+                            RoleId = "550e8400-e29b-41d4-a716-446655440000"
                         });
                 });
 
@@ -244,19 +244,215 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "8bb5a494-cb37-4861-b92e-f6e94439d990",
+                            Id = "550e8400-e29b-41d4-a716-446655440002",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2751b124-f4d7-4ed7-8cf6-4d569dc107a4",
+                            ConcurrencyStamp = "4a23a313-f114-43d4-b10a-9c21bb0ebf4a",
                             Email = "admin@superelf.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SUPERELF.COM",
                             NormalizedUserName = "ADMIN@SUPERELF.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELujqQVhMoB5Z58g2mV2qldlKTmf+xdqXR7sy7Ewy3RUkcbYjFPWlAq5vl9p6QUTKA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEErMXXi/YiWHCA1cZJmmOBPP5IaAJG7xrL+iAVu4SU0+DmI7noxXBSyG9IErxwlp5g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "9f3cef55-b3af-4752-837f-e3c3f7fd19ef",
+                            SecurityStamp = "c8a3484b-842f-4477-b92b-b5945fb67352",
                             TwoFactorEnabled = false,
                             UserName = "admin@superelf.com"
+                        });
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.Club", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LeagueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeagueId");
+
+                    b.ToTable("Clubs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9672),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Ajax",
+                            ShortName = "AJX"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9718),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "PSV",
+                            ShortName = "PSV"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9736),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Feyenoord",
+                            ShortName = "FEY"
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9755),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "AZ",
+                            ShortName = "AZ"
+                        },
+                        new
+                        {
+                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9772),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Utrecht",
+                            ShortName = "UTR"
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9803),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Twente",
+                            ShortName = "TWE"
+                        },
+                        new
+                        {
+                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9821),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Vitesse",
+                            ShortName = "VIT"
+                        },
+                        new
+                        {
+                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9838),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "SC Heerenveen",
+                            ShortName = "HEE"
+                        },
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9857),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Groningen",
+                            ShortName = "GRO"
+                        },
+                        new
+                        {
+                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9877),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Willem II",
+                            ShortName = "WIL"
+                        },
+                        new
+                        {
+                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9895),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "NEC",
+                            ShortName = "NEC"
+                        },
+                        new
+                        {
+                            Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9912),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Fortuna Sittard",
+                            ShortName = "FOR"
+                        },
+                        new
+                        {
+                            Id = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9929),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Go Ahead Eagles",
+                            ShortName = "GAE"
+                        },
+                        new
+                        {
+                            Id = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9946),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Heracles Almelo",
+                            ShortName = "HER"
+                        },
+                        new
+                        {
+                            Id = new Guid("10101010-1010-1010-1010-101010101010"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9962),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "PEC Zwolle",
+                            ShortName = "PEC"
+                        },
+                        new
+                        {
+                            Id = new Guid("20202020-2020-2020-2020-202020202020"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9980),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "RKC Waalwijk",
+                            ShortName = "RKC"
+                        },
+                        new
+                        {
+                            Id = new Guid("30303030-3030-3030-3030-303030303030"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 936, DateTimeKind.Utc).AddTicks(87),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Sparta Rotterdam",
+                            ShortName = "SPA"
+                        },
+                        new
+                        {
+                            Id = new Guid("40404040-4040-4040-4040-404040404040"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 936, DateTimeKind.Utc).AddTicks(110),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Almere City",
+                            ShortName = "ALM"
                         });
                 });
 
@@ -269,6 +465,12 @@ namespace Superelf.Infrastructure.Migrations
                     b.Property<string>("Club")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("ClubId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -277,119 +479,64 @@ namespace Superelf.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PhotoUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("Position")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClubId");
+
                     b.ToTable("FootballPlayers");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.League", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GoogleCalendarId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastSyncAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Leagues");
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Name = "Unai Simón",
-                            Nationality = "SPANJE",
-                            Position = "Goalkeeper"
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Name = "Josko Gvardiol",
-                            Nationality = "KROATIE",
-                            Position = "Defender"
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Name = "Virgil van Dijk",
-                            Nationality = "NEDERLAND",
-                            Position = "Defender"
-                        },
-                        new
-                        {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            Name = "Giovanni Di Lorenzo",
-                            Nationality = "ITALIE",
-                            Position = "Defender"
-                        },
-                        new
-                        {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            Name = "Andreas Christensen",
-                            Nationality = "DENEMARKEN",
-                            Position = "Defender"
-                        },
-                        new
-                        {
-                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
-                            Name = "Xherdan Shaqiri",
-                            Nationality = "ZWITSERLAND",
-                            Position = "Midfielder"
-                        },
-                        new
-                        {
-                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
-                            Name = "Florian Wirtz",
-                            Nationality = "DUITSLAND",
-                            Position = "Midfielder"
-                        },
-                        new
-                        {
-                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
-                            Name = "Kevin De Bruyne",
-                            Nationality = "BELGIE",
-                            Position = "Midfielder"
-                        },
-                        new
-                        {
-                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
-                            Name = "Cristiano Ronaldo",
-                            Nationality = "PORTUGAL",
-                            Position = "Forward"
-                        },
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            Name = "Kylian Mbappé",
-                            Nationality = "FRANKRIJK",
-                            Position = "Forward"
-                        },
-                        new
-                        {
-                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                            Name = "Harry Kane",
-                            Nationality = "ENGELAND",
-                            Position = "Forward"
-                        },
-                        new
-                        {
-                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                            Name = "Jan Oblak",
-                            Nationality = "SLOVENIE",
-                            Position = "Goalkeeper"
-                        },
-                        new
-                        {
-                            Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-                            Name = "Nemanja Stojic",
-                            Nationality = "SERVIE",
-                            Position = "Defender"
-                        },
-                        new
-                        {
-                            Id = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-                            Name = "Nicola Zalewski",
-                            Nationality = "POLEN",
-                            Position = "Midfielder"
-                        },
-                        new
-                        {
-                            Id = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"),
-                            Name = "Maximilian Entrup",
-                            Nationality = "OOSTENRIJK",
-                            Position = "Forward"
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 3, 19, 38, 42, 935, DateTimeKind.Utc).AddTicks(9587),
+                            IsActive = true,
+                            Name = "Eredivisie",
+                            ShortName = "ERE"
                         });
                 });
 
@@ -437,6 +584,105 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasIndex("LineupId");
 
                     b.ToTable("LineupLines");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.Match", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("AwayScore")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AwayTeam")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Competition")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GoogleCalendarEventId")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("HomeScore")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HomeTeam")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LeagueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("MatchDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Round")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeagueId");
+
+                    b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.PlayerPerformance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Assists")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Goals")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("OwnGoals")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PenaltyGoals")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Played")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("RedCards")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("YellowCards")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("PlayerPerformances");
                 });
 
             modelBuilder.Entity("Superelf.Domain.Entities.Pool", b =>
@@ -487,6 +733,34 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasIndex("PoolId");
 
                     b.ToTable("PoolParticipants");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.UserScore", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HasUsedJoker")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("PoolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PoolId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserScores");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -540,6 +814,26 @@ namespace Superelf.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Superelf.Domain.Entities.Club", b =>
+                {
+                    b.HasOne("Superelf.Domain.Entities.League", "League")
+                        .WithMany("Clubs")
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("League");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.FootballPlayer", b =>
+                {
+                    b.HasOne("Superelf.Domain.Entities.Club", "ClubEntity")
+                        .WithMany("Players")
+                        .HasForeignKey("ClubId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ClubEntity");
+                });
+
             modelBuilder.Entity("Superelf.Domain.Entities.Lineup", b =>
                 {
                     b.HasOne("Superelf.Domain.Entities.PoolParticipant", "PoolUser")
@@ -566,6 +860,35 @@ namespace Superelf.Infrastructure.Migrations
                     b.Navigation("FootballPlayer");
 
                     b.Navigation("Lineup");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.Match", b =>
+                {
+                    b.HasOne("Superelf.Domain.Entities.League", "League")
+                        .WithMany("Matches")
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("League");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.PlayerPerformance", b =>
+                {
+                    b.HasOne("Superelf.Domain.Entities.Match", "Match")
+                        .WithMany("PlayerPerformances")
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Superelf.Domain.Entities.FootballPlayer", "Player")
+                        .WithMany("Performances")
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("Superelf.Domain.Entities.Pool", b =>
@@ -598,9 +921,50 @@ namespace Superelf.Infrastructure.Migrations
                     b.Navigation("Pool");
                 });
 
+            modelBuilder.Entity("Superelf.Domain.Entities.UserScore", b =>
+                {
+                    b.HasOne("Superelf.Domain.Entities.Pool", "Pool")
+                        .WithMany()
+                        .HasForeignKey("PoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Superelf.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pool");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.Club", b =>
+                {
+                    b.Navigation("Players");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.FootballPlayer", b =>
+                {
+                    b.Navigation("Performances");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.League", b =>
+                {
+                    b.Navigation("Clubs");
+
+                    b.Navigation("Matches");
+                });
+
             modelBuilder.Entity("Superelf.Domain.Entities.Lineup", b =>
                 {
                     b.Navigation("LineupLines");
+                });
+
+            modelBuilder.Entity("Superelf.Domain.Entities.Match", b =>
+                {
+                    b.Navigation("PlayerPerformances");
                 });
 
             modelBuilder.Entity("Superelf.Domain.Entities.Pool", b =>

@@ -7,10 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Superelf.Domain\Superelf.Domain.csproj"/>
+        <ProjectReference Include="..\Superelf.Domain\Superelf.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Google.Apis.Calendar.v3" Version="1.69.0.3746" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.14" />

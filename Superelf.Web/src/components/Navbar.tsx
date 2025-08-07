@@ -58,6 +58,17 @@ const Navbar: React.FC = () => {
                     Pools
                   </Link>
                 </li>
+                {user.roles?.includes('Admin') && (
+                  <li className="nav-item">
+                    <Link 
+                      className={`nav-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`} 
+                      to="/admin"
+                    >
+                      <i className="bi bi-gear-fill me-1"></i>
+                      Admin
+                    </Link>
+                  </li>
+                )}
               </>
             )}
           </ul>

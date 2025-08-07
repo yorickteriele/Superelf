@@ -96,7 +96,10 @@ public class SelectionController : ControllerBase
             Name = p.Name,
             Position = p.Position,
             Nationality = p.Nationality,
-            Club = p.Club
+            Club = p.Club,
+            ClubId = p.ClubId,
+            PhotoUrl = p.PhotoUrl,
+            CreatedAt = p.CreatedAt
         }).ToList();
 
         selectionDto.Defenders = defenders.Select(p => new FootballPlayerDto
@@ -105,7 +108,10 @@ public class SelectionController : ControllerBase
             Name = p.Name,
             Position = p.Position,
             Nationality = p.Nationality,
-            Club = p.Club
+            Club = p.Club,
+            ClubId = p.ClubId,
+            PhotoUrl = p.PhotoUrl,
+            CreatedAt = p.CreatedAt
         }).ToList();
 
         selectionDto.Midfielders = midfielders.Select(p => new FootballPlayerDto
@@ -114,7 +120,10 @@ public class SelectionController : ControllerBase
             Name = p.Name,
             Position = p.Position,
             Nationality = p.Nationality,
-            Club = p.Club
+            Club = p.Club,
+            ClubId = p.ClubId,
+            PhotoUrl = p.PhotoUrl,
+            CreatedAt = p.CreatedAt
         }).ToList();
 
         selectionDto.Forwards = forwards.Select(p => new FootballPlayerDto
@@ -123,7 +132,10 @@ public class SelectionController : ControllerBase
             Name = p.Name,
             Position = p.Position,
             Nationality = p.Nationality,
-            Club = p.Club
+            Club = p.Club,
+            ClubId = p.ClubId,
+            PhotoUrl = p.PhotoUrl,
+            CreatedAt = p.CreatedAt
         }).ToList();
 
         return Ok(selectionDto);
@@ -209,7 +221,10 @@ public class SelectionController : ControllerBase
                 Name = p.Name,
                 Position = p.Position,
                 Nationality = p.Nationality,
-                Club = p.Club
+                Club = p.Club,
+                ClubId = p.ClubId,
+                PhotoUrl = p.PhotoUrl,
+                CreatedAt = p.CreatedAt
             }).ToList(),
             UniqueNationalities = stats.UniqueNationalities,
             TotalSelectedPlayers = stats.TotalPlayers,

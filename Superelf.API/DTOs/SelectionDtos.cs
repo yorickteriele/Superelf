@@ -33,6 +33,9 @@ public class FootballPlayerDto
     public string Position { get; set; } = string.Empty;
     public string Nationality { get; set; } = string.Empty;
     public string? Club { get; set; }
+    public Guid? ClubId { get; set; }
+    public string? PhotoUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
 public class SubmitSelectionDto

@@ -1,0 +1,13 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /app
+
+# Copy full source and config
+COPY . .
+COPY Superelf.API/appsettings*.json Superelf.API/
+
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Debug: list migrations
+RUN find Superelf.Infrastructure/Migrations -type f -name "*.cs" | sort

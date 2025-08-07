@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, authService } from '../services/api';
+import { getUserRolesFromToken } from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +30,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser));
+        const user = JSON.parse(storedUser);
+        // Get roles from JWT token
+        const roles = getUserRolesFromToken(storedToken);
+        user.roles = roles;
+        setUser(user);
       } catch (e) {
         // If user data is corrupted, clear both user and token
         localStorage.removeItem('user');
@@ -55,8 +60,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (response.success && response.user && response.token) {
-        setUser(response.user);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        // Get roles from JWT token
+        const roles = getUserRolesFromToken(response.token);
+        const userWithRoles = { ...response.user, roles };
+        
+        setUser(userWithRoles);
+        localStorage.setItem('user', JSON.stringify(userWithRoles));
         localStorage.setItem('authToken', response.token);
         setLoading(false);
         return true;
@@ -90,8 +99,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (response.success && response.user && response.token) {
-        setUser(response.user);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        // Get roles from JWT token
+        const roles = getUserRolesFromToken(response.token);
+        const userWithRoles = { ...response.user, roles };
+        
+        setUser(userWithRoles);
+        localStorage.setItem('user', JSON.stringify(userWithRoles));
         localStorage.setItem('authToken', response.token);
         setLoading(false);
         return true;

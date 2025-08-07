@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
 
         if (result.Result.Succeeded && result.User != null)
         {
-            var token = _jwtService.GenerateToken(result.User);
+            var token = await _jwtService.GenerateTokenAsync(result.User);
             
             return Ok(new AuthResponseDto
             {
@@ -102,7 +102,7 @@ public class AuthController : ControllerBase
             if (user != null)
             {
                 _logger.LogInformation("User found, generating JWT token for user: {UserId}", user.Id);
-                var token = _jwtService.GenerateToken(user);
+                var token = await _jwtService.GenerateTokenAsync(user);
                 
                 _logger.LogInformation("Login successful for user: {UserId}, {Username}", user.Id, user.UserName);
                 return Ok(new AuthResponseDto

@@ -14,13 +14,6 @@ docs/
 .vscode/
 .idea/
 
-# Build outputs
-**/bin/
-**/obj/
-**/node_modules/
-**/build/
-**/dist/
-
 # Environment files
 .env
 .env.local
