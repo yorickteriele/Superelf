@@ -265,15 +265,12 @@ jobs:
     - name: Apply database migrations
       env:
         TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-        RESET_DB: ${{ secrets.RESET_DB }}
       run: |
         ssh root@${{ secrets.SERVER_HOST }} "TEST_DB_PASSWORD=$TEST_DB_PASSWORD bash -s" <<'EOF'
           cd /root/superelf-test
 
-          if [ "$RESET_DB" = "true" ]; then
-            echo "Clearing all configs and code files, but persisting database and its data..."
-            docker-compose -f docker-compose.test.yml down
-          fi
+          echo "Clearing all configs and code files, but persisting database and its data..."
+          docker-compose -f docker-compose.test.yml down
 
           if ! docker network inspect superelf-test_superelf-test >/dev/null 2>&1; then
             echo "Creating Docker network superelf-test_superelf-test by starting postgres-test..."
@@ -287,11 +284,9 @@ jobs:
             sleep 15
           fi
 
-          if [ "$RESET_DB" = "true" ]; then
-            echo "Dropping and recreating test database..."
-            docker exec superelf-postgres-test psql -U postgres -c "DROP DATABASE IF EXISTS \"SuperelfDbTest\";"
-            docker exec superelf-postgres-test psql -U postgres -c "CREATE DATABASE \"SuperelfDbTest\";"
-          fi
+          echo "Dropping and recreating test database..."
+          docker exec superelf-postgres-test psql -U postgres -c "DROP DATABASE IF EXISTS \"SuperelfDbTest\";"
+          docker exec superelf-postgres-test psql -U postgres -c "CREATE DATABASE \"SuperelfDbTest\";"
 
           echo "Building migrations container..."
           docker build --no-cache -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
