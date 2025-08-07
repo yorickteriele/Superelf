@@ -265,6 +265,7 @@ jobs:
     - name: Apply database migrations
       env:
         TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+        RESET_DB: ${{ secrets.RESET_DB }}
       run: |
         ssh root@${{ secrets.SERVER_HOST }} "TEST_DB_PASSWORD=$TEST_DB_PASSWORD bash -s" <<'EOF'
           cd /root/superelf-test
@@ -284,6 +285,12 @@ jobs:
             docker-compose -f docker-compose.test.yml up -d postgres-test
             echo "Waiting for database to be ready..."
             sleep 15
+          fi
+
+          if [ "$RESET_DB" = "true" ]; then
+            echo "Dropping and recreating test database..."
+            docker exec superelf-postgres-test psql -U postgres -c "DROP DATABASE IF EXISTS \"SuperelfDbTest\";"
+            docker exec superelf-postgres-test psql -U postgres -c "CREATE DATABASE \"SuperelfDbTest\";"
           fi
 
           echo "Building migrations container..."
