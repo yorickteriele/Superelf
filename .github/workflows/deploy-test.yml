@@ -288,7 +288,7 @@ jobs:
 
           # Build and run migrations container using permanent Dockerfile
           echo "Building migrations container..."
-          docker build -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
+          docker build --no-cache -t superelf-migrations-test -f Superelf.Infrastructure/Dockerfile.migrations .
 
           echo "Running migrations..."
           docker run --rm --network=superelf-test_superelf-test \
