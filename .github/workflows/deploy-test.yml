@@ -225,7 +225,13 @@ jobs:
           rm superelf-test.tar.gz
           ls /root/superelf-test
         '
-
+        
+    - name: Inject Google Calendar API Key
+      run: |
+        ssh root@${{ secrets.SERVER_HOST }} '
+          cd /root/superelf-test
+          find . -name "appsettings.*.json" -exec sed -i "s|<GOOGLE_CALENDAR_API_KEY>|${{ secrets.GOOGLE_CALENDAR_API_KEY }}|g" {} +
+        '
 
     - name: Check migration files on server
       run: |
