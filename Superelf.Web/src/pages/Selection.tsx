@@ -289,7 +289,7 @@ const Selection: React.FC = () => {
                   top: '-8px',
                   right: '-8px',
                   fontSize: isJoker ? '20px' : '18px',
-                  background: isJoker ? 'linear-gradient(135deg, #ffd700, #ffed4e)' : 'rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.1)',
                   width: isJoker ? '30px' : '28px',
                   height: isJoker ? '30px' : '28px',
                   borderRadius: '50%',
@@ -349,7 +349,7 @@ const Selection: React.FC = () => {
             className="btn btn-outline-light"
             onClick={() => navigate(`/pools/${poolId}`)}
           >
-            ← Back to Pool
+            Back to Pool
           </button>
 
           <div className="header-buttons">

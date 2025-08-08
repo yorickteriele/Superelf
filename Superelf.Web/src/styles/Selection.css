@@ -317,7 +317,6 @@
   right: -10px;
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -328,7 +327,6 @@
   z-index: 10;
   opacity: 0.9;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
 }
 
 .joker-star:hover {
@@ -349,22 +347,10 @@
 }
 
 .player-slot.joker {
-  border: 3px solid #ffd700;
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
   animation: jokerGlow 2s ease-in-out infinite alternate;
 }
 
-@keyframes jokerGlow {
-  0% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
-  100% { box-shadow: 0 0 50px rgba(255, 215, 0, 1); }
-}
 
-
-
-@keyframes jokerStar {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(180deg); }
-}
 
 .player-slot.readonly {
   opacity: 0.8;
@@ -377,8 +363,8 @@
 }
 
 .player-image {
-  width: 70px;
-  height: 70px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   object-fit: cover;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -563,7 +549,6 @@
 }
 
 .joker-toggle {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
   color: #333;
   border: none;
   padding: 12px 20px;
@@ -594,7 +579,6 @@
 }
 
 .joker-toggle.active {
-  background: linear-gradient(135deg, #ffed4e, #ffd700);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
   transform: translateY(-2px);
 }
@@ -831,8 +815,8 @@
   }
   
   .player-image {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
   }
   
   .player-name {
@@ -881,8 +865,8 @@
   }
   
   .player-image {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
   }
   
   .player-name {
