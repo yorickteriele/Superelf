@@ -35,10 +35,11 @@ public class SelectionService {
         bool isJoker = false,
         int? slotIndex = null
     ) {
-        var maxSelection = isReserve ? 1 : GetMaxSelectionForPosition(position);
+        // Always enforce maximum of 1 player per slot
+        var maxSelection = 1;
 
         if (selectedPlayers.Count > maxSelection)
-            throw new InvalidOperationException($"Maximaal {maxSelection} spelers toegestaan voor deze positie.");
+            throw new InvalidOperationException($"Maximaal {maxSelection} speler toegestaan per positie.");
 
         var lineup = await _selectionRepository.GetLineupWithPlayersAsync(poolId, userId);
         if (lineup == null)

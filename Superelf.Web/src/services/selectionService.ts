@@ -82,6 +82,16 @@ const selectionService = {
     }
   },
 
+  getUserSelection: async (poolId: string, userId: string): Promise<SelectionDto> => {
+    try {
+      const response = await apiClient.get(`/selection/${poolId}/user/${userId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching user selection:', error);
+      throw error;
+    }
+  },
+
   getPlayersForSelection: async (
     poolId: string,
     position: string,

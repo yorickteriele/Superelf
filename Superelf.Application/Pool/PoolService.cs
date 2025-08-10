@@ -119,6 +119,14 @@ public class PoolService {
         return await _poolRepository.RemoveParticipantFromPoolAsync(poolId, userId);
     }
 
+    public async Task<bool> ToggleSelectionEditingAsync(Guid poolId, string requesterId, bool allowSelectionEditing) {
+        var pool = await _poolRepository.GetPoolByIdAsync(poolId);
+        if (pool == null || pool.Owner.Id != requesterId) return false;
+
+        pool.AllowSelectionEditing = allowSelectionEditing;
+        return await _poolRepository.UpdatePoolAsync(pool);
+    }
+
     public async Task<bool> DeletePoolAsync(Guid poolId) {
         return await _poolRepository.DeletePoolAsync(poolId);
     }

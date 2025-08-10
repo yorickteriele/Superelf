@@ -6,6 +6,7 @@ public class Pool {
     public required string Name { get; set; }
     public required string Code { get; set; }
     public DateTime CreateTime { get; set; } = DateTime.UtcNow;
+    public bool AllowSelectionEditing { get; set; } = true;
     
     public List<PoolParticipant> Participants { get; set; } = new();
 }

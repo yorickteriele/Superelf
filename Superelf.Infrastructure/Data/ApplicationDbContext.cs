@@ -102,44 +102,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             }
         );
 
-        // Add Eredivisie clubs
-        var clubData = new[]
-        {
-            new { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Ajax", ShortName = "AJX", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "PSV", ShortName = "PSV", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "Feyenoord", ShortName = "FEY", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "AZ", ShortName = "AZ", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("66666666-6666-6666-6666-666666666666"), Name = "FC Utrecht", ShortName = "UTR", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("77777777-7777-7777-7777-777777777777"), Name = "FC Twente", ShortName = "TWE", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("88888888-8888-8888-8888-888888888888"), Name = "Vitesse", ShortName = "VIT", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("99999999-9999-9999-9999-999999999999"), Name = "SC Heerenveen", ShortName = "HEE", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Name = "FC Groningen", ShortName = "GRO", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Name = "Willem II", ShortName = "WIL", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Name = "NEC", ShortName = "NEC", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), Name = "Fortuna Sittard", ShortName = "FOR", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), Name = "Go Ahead Eagles", ShortName = "GAE", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), Name = "Heracles Almelo", ShortName = "HER", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("10101010-1010-1010-1010-101010101010"), Name = "PEC Zwolle", ShortName = "PEC", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("20202020-2020-2020-2020-202020202020"), Name = "RKC Waalwijk", ShortName = "RKC", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("30303030-3030-3030-3030-303030303030"), Name = "Sparta Rotterdam", ShortName = "SPA", LeagueId = eredivisieId },
-            new { Id = Guid.Parse("40404040-4040-4040-4040-404040404040"), Name = "Almere City", ShortName = "ALM", LeagueId = eredivisieId }
-        };
-
-        foreach (var club in clubData)
-        {
-            modelBuilder.Entity<Club>().HasData(
-                new Club 
-                { 
-                    Id = club.Id, 
-                    Name = club.Name, 
-                    ShortName = club.ShortName,
-                    Country = "Netherlands",
-                    LeagueId = club.LeagueId,
-                    CreatedAt = DateTime.UtcNow 
-                }
-            );
-        }
-
         // Temporarily commented out to avoid seed data conflicts during migration
         /*
         modelBuilder.Entity<FootballPlayer>().HasData(

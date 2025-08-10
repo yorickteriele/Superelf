@@ -13,6 +13,7 @@ public interface IPoolRepository {
     public Task<Domain.Entities.Pool?> GetPoolByIdAsync(Guid poolId);
     public Task<List<PoolParticipant>> GetPoolParticipantsAsync(Guid poolId);
     public Task<bool> RemoveParticipantFromPoolAsync(Guid poolId, string userId);
+    public Task<bool> UpdatePoolAsync(Domain.Entities.Pool pool);
     public Task<bool> DeletePoolAsync(Guid poolId);
     public Task<List<Domain.Entities.Pool>> GetAllPoolsAsync();
 }

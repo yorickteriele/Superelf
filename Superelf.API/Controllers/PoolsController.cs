@@ -16,15 +16,18 @@ public class PoolsController : ControllerBase
     private readonly AuthenticationService _authenticationService;
     private readonly ILogger<PoolsController> _logger;
     private readonly PoolService _poolService;
+    private readonly IScoringService _scoringService;
 
     public PoolsController(
         ILogger<PoolsController> logger,
         PoolService poolService,
-        AuthenticationService authenticationService)
+        AuthenticationService authenticationService,
+        IScoringService scoringService)
     {
         _logger = logger;
         _poolService = poolService;
         _authenticationService = authenticationService;
+        _scoringService = scoringService;
     }
 
     [HttpGet]
@@ -42,6 +45,7 @@ public class PoolsController : ControllerBase
             Code = poolTuple.Pool.Code,
             CreateTime = poolTuple.Pool.CreateTime,
             OwnerName = poolTuple.Pool.Owner.UserName!,
+            AllowSelectionEditing = poolTuple.Pool.AllowSelectionEditing,
             Participants = new List<PoolParticipantDto>() // Will be populated separately if needed
         }).ToList();
 
@@ -136,6 +140,7 @@ public class PoolsController : ControllerBase
             Code = pool.Code,
             CreateTime = pool.CreateTime,
             OwnerName = pool.Owner.UserName!,
+            AllowSelectionEditing = pool.AllowSelectionEditing,
             Participants = participantsWithStatus.Select(p => new PoolParticipantDto
             {
                 UserId = p.Participant.ApplicationUser.Id,
@@ -229,5 +234,52 @@ public class PoolsController : ControllerBase
         }).ToList();
 
         return Ok(poolDtos);
+    }
+
+    [HttpGet("{poolId}/scoreboard")]
+    public async Task<ActionResult<List<UserScoreDto>>> GetPoolScoreboard(Guid poolId)
+    {
+        var user = await _authenticationService.GetCurrentUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        // Check if user is participant in the pool
+        var poolWithParticipants = await _poolService.GetPoolWithParticipantsAsync(poolId, user);
+        if (poolWithParticipants == null)
+            return Forbid();
+
+        try
+        {
+            var scores = await _scoringService.CalculatePoolScoresAsync(poolId);
+            return Ok(scores);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating pool scores for pool {PoolId}", poolId);
+            return BadRequest("Failed to calculate pool scores");
+        }
+    }
+
+    [HttpPut("{poolId}/toggle-selection-editing")]
+    public async Task<ActionResult> ToggleSelectionEditing(Guid poolId, [FromBody] ToggleSelectionEditingDto toggleDto)
+    {
+        var user = await _authenticationService.GetCurrentUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        try
+        {
+            var result = await _poolService.ToggleSelectionEditingAsync(poolId, user.Id, toggleDto.AllowSelectionEditing);
+            
+            if (result)
+            {
+                return Ok($"Selection editing {(toggleDto.AllowSelectionEditing ? "enabled" : "disabled")} successfully");
+            }
+            
+            return BadRequest("Failed to update selection editing setting. You may not be the pool owner.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling selection editing for pool {PoolId}", poolId);
+            return BadRequest("An error occurred while updating selection editing setting");
+        }
     }
 }

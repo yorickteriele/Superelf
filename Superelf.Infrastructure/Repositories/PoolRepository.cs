@@ -82,6 +82,11 @@ public class PoolRepository : IPoolRepository {
         return await SaveAsync();
     }
 
+    public async Task<bool> UpdatePoolAsync(Pool pool) {
+        _context.Pools.Update(pool);
+        return await SaveAsync();
+    }
+
     public async Task<bool> DeletePoolAsync(Guid poolId) {
         var pool = await _context.Pools
             .Include(p => p.Participants)
