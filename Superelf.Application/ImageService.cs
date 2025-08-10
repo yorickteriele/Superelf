@@ -1,6 +1,7 @@
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using System.Runtime.InteropServices;
 
 namespace Superelf.Application;
 
@@ -23,32 +24,29 @@ public class ImageService : IImageService
         _configuration = configuration;
         _httpClient = httpClient;
         
-        // Get images directory from configuration or use default
-        var configuredPath = _configuration["ImageStorage:Directory"];
-        if (!string.IsNullOrEmpty(configuredPath))
+        try
         {
-            _imagesDirectory = configuredPath;
-        }
-        else
-        {
-            // Try to find the Web project's public folder
-            var currentDir = Directory.GetCurrentDirectory();
-            var webPublicPath = Path.Combine(currentDir, "..", "Superelf.Web", "public", "images", "players");
-            
-            if (Directory.Exists(Path.GetDirectoryName(webPublicPath)))
+            // Get images directory from configuration or use default
+            var configuredPath = _configuration["ImageStorage:Directory"];
+            if (!string.IsNullOrEmpty(configuredPath))
             {
-                _imagesDirectory = webPublicPath;
+                _imagesDirectory = configuredPath;
             }
             else
             {
-                // Fallback to a local images directory
-                _imagesDirectory = Path.Combine(currentDir, "images", "players");
+                // Fallback to a local images directory in the current working directory
+                _imagesDirectory = Path.Combine(Directory.GetCurrentDirectory(), "images", "players");
             }
+            
+            // Ensure the directory exists with proper permissions
+            EnsureDirectoryExists(_imagesDirectory);
+            _logger.LogInformation("ImageService initialized with directory: {Directory}", _imagesDirectory);
         }
-        
-        // Ensure the directory exists
-        Directory.CreateDirectory(_imagesDirectory);
-        _logger.LogInformation("ImageService initialized with directory: {Directory}", _imagesDirectory);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize ImageService");
+            throw;
+        }
     }
 
     public async Task<string?> DownloadAndSaveImageAsync(string? imageUrl, string playerName)
@@ -132,8 +130,50 @@ public class ImageService : IImageService
         }
     }
 
+    private void EnsureDirectoryExists(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+                _logger.LogInformation("Created directory: {Path}", path);
+                
+                // Set appropriate permissions if on Unix
+                if (Environment.OSVersion.Platform == PlatformID.Unix || 
+                    Environment.OSVersion.Platform == PlatformID.MacOSX)
+                {
+                    try
+                    {
+                        // This requires .NET 6.0 or later
+                        File.SetUnixFileMode(path, 
+                            UnixFileMode.UserRead | 
+                            UnixFileMode.UserWrite | 
+                            UnixFileMode.UserExecute |
+                            UnixFileMode.GroupRead |
+                            UnixFileMode.GroupExecute |
+                            UnixFileMode.OtherRead |
+                            UnixFileMode.OtherExecute);
+                    }
+                    catch (PlatformNotSupportedException)
+                    {
+                        // Ignore on platforms that don't support UnixFileMode
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create or access directory: {Path}", path);
+            throw;
+        }
+    }
+
     private static string CreateSafeFileName(string playerName)
     {
+        if (string.IsNullOrWhiteSpace(playerName))
+            return Guid.NewGuid().ToString("N");
+            
         // Remove or replace invalid characters
         var invalidChars = Path.GetInvalidFileNameChars();
         var safeName = playerName;

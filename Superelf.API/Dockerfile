@@ -29,10 +29,16 @@ RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/l
 # Copy published files from build stage
 COPY --from=build /app/publish .
 
+# Create image directory with correct permissions
+RUN mkdir -p /app/images/players && \
+    chmod -R 755 /app/images
+
 # Create a non-root user
 RUN addgroup --system --gid 1001 superelf && \
-    adduser --system --uid 1001 --gid 1001 superelf
-RUN chown -R superelf:superelf /app
+    adduser --system --uid 1001 --gid 1001 superelf && \
+    chown -R superelf:superelf /app
+
+# Switch to non-root user
 USER superelf
 
 # Expose port
