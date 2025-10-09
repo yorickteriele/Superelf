@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">
           <i className="bi bi-trophy-fill me-2"></i>
-          SuperElf
+          Superelf
         </Link>
         <button 
           className="navbar-toggler" 

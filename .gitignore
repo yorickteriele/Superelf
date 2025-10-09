@@ -67,3 +67,6 @@ project.fragment.lock.json
 /cypress/screenshots/
 /cypress/fixtures/
 /node_modules/
+
+# Downloaded player images
+Superelf.Web/public/images/players/

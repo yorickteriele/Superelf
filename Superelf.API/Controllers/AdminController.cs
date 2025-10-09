@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Superelf.Domain.Entities;
 using Superelf.Infrastructure.Data;
 using Superelf.API.DTOs;
+using Superelf.Application;
 using System.Text.Json;
 
 namespace Superelf.API.Controllers;
@@ -20,19 +21,22 @@ public class AdminController : ControllerBase
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<AdminController> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IImageService _imageService;
 
     public AdminController(
         ApplicationDbContext dbContext,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         ILogger<AdminController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IImageService imageService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
         _configuration = configuration;
+        _imageService = imageService;
     }
 
     // USERS MANAGEMENT
@@ -201,13 +205,34 @@ public class AdminController : ControllerBase
     [HttpPost("players")]
     public async Task<ActionResult<FootballPlayerDto>> CreatePlayer(CreatePlayerDto createDto)
     {
-        // Validate club if ClubId is provided
+        // Find matching club
         Club? club = null;
         if (createDto.ClubId.HasValue)
         {
             club = await _dbContext.Clubs.FindAsync(createDto.ClubId.Value);
             if (club == null)
                 return BadRequest("Club not found");
+        }
+        else if (!string.IsNullOrWhiteSpace(createDto.Club))
+        {
+            // Get all clubs for matching
+            var allClubs = await _dbContext.Clubs.ToListAsync();
+            club = FindBestMatchingClub(createDto.Club, allClubs);
+            if (club != null)
+            {
+                _logger.LogDebug("Found matching club for '{PlayerClub}': {MatchedClub}", createDto.Club, club.Name);
+            }
+            else
+            {
+                _logger.LogWarning("No matching club found for '{PlayerClub}'", createDto.Club);
+            }
+        }
+
+        // Download and save image if PhotoUrl is provided
+        string? localPhotoUrl = null;
+        if (!string.IsNullOrWhiteSpace(createDto.PhotoUrl))
+        {
+            localPhotoUrl = await _imageService.DownloadAndSaveImageAsync(createDto.PhotoUrl, createDto.Name);
         }
 
         var player = new FootballPlayer
@@ -217,9 +242,9 @@ public class AdminController : ControllerBase
             Position = createDto.Position,
             Nationality = createDto.Nationality,
             Club = createDto.Club, // For backward compatibility
-            ClubId = createDto.ClubId,
+            ClubId = club?.Id,
             ClubEntity = club,
-            PhotoUrl = createDto.PhotoUrl
+            PhotoUrl = localPhotoUrl ?? createDto.PhotoUrl
         };
 
         _dbContext.FootballPlayers.Add(player);
@@ -247,6 +272,9 @@ public class AdminController : ControllerBase
         var result = new BulkCreateResult();
         var playersToAdd = new List<FootballPlayer>();
 
+        // Get all clubs for matching
+        var allClubs = await _dbContext.Clubs.ToListAsync();
+
         foreach (var playerDto in bulkDto.Players)
         {
             try
@@ -265,10 +293,11 @@ public class AdminController : ControllerBase
                     }
                 }
 
-                // Validate club if ClubId is provided
+                // Find matching club
                 Club? club = null;
                 if (playerDto.ClubId.HasValue)
                 {
+                    // If ClubId is provided, use it directly
                     club = await _dbContext.Clubs.FindAsync(playerDto.ClubId.Value);
                     if (club == null)
                     {
@@ -276,6 +305,26 @@ public class AdminController : ControllerBase
                         result.FailedPlayers.Add($"{playerDto.Name} - Club not found");
                         continue;
                     }
+                }
+                else if (!string.IsNullOrWhiteSpace(playerDto.Club))
+                {
+                    // Try to find club by name matching
+                    club = FindBestMatchingClub(playerDto.Club, allClubs);
+                    if (club != null)
+                    {
+                        _logger.LogDebug("Found matching club for '{PlayerClub}': {MatchedClub}", playerDto.Club, club.Name);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("No matching club found for '{PlayerClub}'", playerDto.Club);
+                    }
+                }
+
+                // Download and save image if PhotoUrl is provided
+                string? localPhotoUrl = null;
+                if (!string.IsNullOrWhiteSpace(playerDto.PhotoUrl))
+                {
+                    localPhotoUrl = await _imageService.DownloadAndSaveImageAsync(playerDto.PhotoUrl, playerDto.Name);
                 }
 
                 var player = new FootballPlayer
@@ -285,9 +334,9 @@ public class AdminController : ControllerBase
                     Position = playerDto.Position,
                     Nationality = playerDto.Nationality,
                     Club = playerDto.Club,
-                    ClubId = playerDto.ClubId,
+                    ClubId = club?.Id,
                     ClubEntity = club,
-                    PhotoUrl = playerDto.PhotoUrl
+                    PhotoUrl = localPhotoUrl ?? playerDto.PhotoUrl
                 };
 
                 playersToAdd.Add(player);
@@ -319,7 +368,7 @@ public class AdminController : ControllerBase
         if (player == null)
             return NotFound("Player not found");
 
-        // Validate club if ClubId is provided
+        // Find matching club
         Club? club = null;
         if (updateDto.ClubId.HasValue)
         {
@@ -327,14 +376,46 @@ public class AdminController : ControllerBase
             if (club == null)
                 return BadRequest("Club not found");
         }
+        else if (!string.IsNullOrWhiteSpace(updateDto.Club))
+        {
+            // Get all clubs for matching
+            var allClubs = await _dbContext.Clubs.ToListAsync();
+            club = FindBestMatchingClub(updateDto.Club, allClubs);
+            if (club != null)
+            {
+                _logger.LogDebug("Found matching club for '{PlayerClub}': {MatchedClub}", updateDto.Club, club.Name);
+            }
+            else
+            {
+                _logger.LogWarning("No matching club found for '{PlayerClub}'", updateDto.Club);
+            }
+        }
+
+        // Handle image update
+        if (updateDto.PhotoUrl != player.PhotoUrl)
+        {
+            // Delete old image if it's a local file
+            if (!string.IsNullOrWhiteSpace(player.PhotoUrl) && (player.PhotoUrl.StartsWith("/") || player.PhotoUrl.StartsWith("images/")))
+            {
+                await _imageService.DeleteImageAsync(player.PhotoUrl);
+            }
+
+            // Download and save new image if PhotoUrl is provided
+            string? localPhotoUrl = null;
+            if (!string.IsNullOrWhiteSpace(updateDto.PhotoUrl))
+            {
+                localPhotoUrl = await _imageService.DownloadAndSaveImageAsync(updateDto.PhotoUrl, updateDto.Name);
+            }
+
+            player.PhotoUrl = localPhotoUrl ?? updateDto.PhotoUrl;
+        }
 
         player.Name = updateDto.Name;
         player.Position = updateDto.Position;
         player.Nationality = updateDto.Nationality;
         player.Club = updateDto.Club; // For backward compatibility
-        player.ClubId = updateDto.ClubId;
+        player.ClubId = club?.Id;
         player.ClubEntity = club;
-        player.PhotoUrl = updateDto.PhotoUrl;
 
         await _dbContext.SaveChangesAsync();
 
@@ -355,6 +436,12 @@ public class AdminController : ControllerBase
         if (isPlayerInUse)
         {
             return BadRequest("Cannot delete player: player is currently used in lineups");
+        }
+
+        // Delete associated image file if it's a local file
+        if (!string.IsNullOrWhiteSpace(player.PhotoUrl) && (player.PhotoUrl.StartsWith("/") || player.PhotoUrl.StartsWith("images/")))
+        {
+            await _imageService.DeleteImageAsync(player.PhotoUrl);
         }
 
         _dbContext.FootballPlayers.Remove(player);
@@ -471,24 +558,38 @@ public class AdminController : ControllerBase
         if (!players.Any())
             return NotFound("No players found");
 
-        // Validate club exists if ClubId is provided
+        // Find matching club
+        Club? club = null;
         if (updateDto.NewClubId.HasValue)
         {
-            var club = await _dbContext.Clubs.FindAsync(updateDto.NewClubId.Value);
+            club = await _dbContext.Clubs.FindAsync(updateDto.NewClubId.Value);
             if (club == null)
                 return BadRequest("Club not found");
+        }
+        else if (!string.IsNullOrWhiteSpace(updateDto.NewClub))
+        {
+            // Get all clubs for matching
+            var allClubs = await _dbContext.Clubs.ToListAsync();
+            club = FindBestMatchingClub(updateDto.NewClub, allClubs);
+            if (club != null)
+            {
+                _logger.LogDebug("Found matching club for '{NewClub}': {MatchedClub}", updateDto.NewClub, club.Name);
+            }
+            else
+            {
+                _logger.LogWarning("No matching club found for '{NewClub}'", updateDto.NewClub);
+            }
         }
 
         foreach (var player in players)
         {
             player.Club = updateDto.NewClub; // For backward compatibility
-            player.ClubId = updateDto.NewClubId;
+            player.ClubId = club?.Id;
         }
 
         await _dbContext.SaveChangesAsync();
 
-        var clubName = updateDto.NewClub ?? (updateDto.NewClubId.HasValue ? 
-            (await _dbContext.Clubs.FindAsync(updateDto.NewClubId.Value))?.Name ?? "Unknown" : "None");
+        var clubName = club?.Name ?? updateDto.NewClub ?? "None";
 
         _logger.LogInformation("Bulk updated {Count} players to club: {Club}", players.Count, clubName);
         return Ok($"Updated {players.Count} players to club: {clubName}");
@@ -502,12 +603,18 @@ public class AdminController : ControllerBase
             .Include(m => m.PlayerPerformances)
             .ThenInclude(pp => pp.Player)
             .AsQueryable();
-
+        foreach (var match in query)
+        {
+                match.IsCompleted = match.MatchDate < DateTime.UtcNow; // Ensure future matches are marked as not completed
+        }
+        
+        
+        
         if (onlyCompleted)
             query = query.Where(m => m.IsCompleted);
 
         var matches = await query
-            .OrderByDescending(m => m.MatchDate)
+            .OrderBy(m => m.MatchDate)
             .Select(m => new MatchDto
             {
                 Id = m.Id,
@@ -540,7 +647,7 @@ public class AdminController : ControllerBase
                 }).ToList()
             })
             .ToListAsync();
-
+        await _dbContext.SaveChangesAsync();
         return Ok(matches);
     }
 
@@ -736,7 +843,7 @@ public class AdminController : ControllerBase
             YellowCards = createDto.YellowCards,
             RedCards = createDto.RedCards,
             Played = createDto.Played,
-            Points = CalculateFantasyPoints(createDto) // Calculate fantasy points
+            Points = CalculateFantasyPoints(createDto, match, player.Club ?? "") // Calculate fantasy points with match context
         };
 
         _dbContext.PlayerPerformances.Add(performance);
@@ -784,7 +891,7 @@ public class AdminController : ControllerBase
         performance.YellowCards = updateDto.YellowCards;
         performance.RedCards = updateDto.RedCards;
         performance.Played = updateDto.Played;
-        performance.Points = CalculateFantasyPoints(updateDto); // Recalculate fantasy points
+        performance.Points = CalculateFantasyPoints(updateDto, performance.Match, performance.Player.Club ?? ""); // Recalculate fantasy points with match context
 
         await _dbContext.SaveChangesAsync();
 
@@ -857,7 +964,7 @@ public class AdminController : ControllerBase
                 YellowCards = performanceDto.YellowCards,
                 RedCards = performanceDto.RedCards,
                 Played = performanceDto.Played,
-                Points = CalculateFantasyPoints(performanceDto)
+                Points = CalculateFantasyPoints(performanceDto, match, players[performanceDto.PlayerId].Club ?? "") // Calculate with match context
             };
 
             newPerformances.Add(performance);
@@ -877,6 +984,8 @@ public class AdminController : ControllerBase
 
     private int CalculateFantasyPoints(CreatePlayerPerformanceDto dto)
     {
+        // For create operations, we need match context for win/draw/lose points
+        // This will be handled in the calling method where we have access to the match
         return CalculateFantasyPoints(dto.Goals, dto.PenaltyGoals, dto.PenaltiesMissed, dto.OwnGoals, dto.Assists, dto.YellowCards, dto.RedCards, dto.Played);
     }
 
@@ -885,27 +994,64 @@ public class AdminController : ControllerBase
         return CalculateFantasyPoints(dto.Goals, dto.PenaltyGoals, dto.PenaltiesMissed, dto.OwnGoals, dto.Assists, dto.YellowCards, dto.RedCards, dto.Played);
     }
 
+    private int CalculateFantasyPoints(CreatePlayerPerformanceDto dto, Match match, string playerClub)
+    {
+        return CalculateFantasyPoints(dto.Goals, dto.PenaltyGoals, dto.PenaltiesMissed, dto.OwnGoals, dto.Assists, dto.YellowCards, dto.RedCards, dto.Played, match, playerClub);
+    }
+
+    private int CalculateFantasyPoints(UpdatePlayerPerformanceDto dto, Match match, string playerClub)
+    {
+        return CalculateFantasyPoints(dto.Goals, dto.PenaltyGoals, dto.PenaltiesMissed, dto.OwnGoals, dto.Assists, dto.YellowCards, dto.RedCards, dto.Played, match, playerClub);
+    }
+
     private int CalculateFantasyPoints(int goals, int penaltyGoals, int penaltiesMissed, int ownGoals, int assists, int yellowCards, int redCards, bool played)
     {
-        int points = 0;
+        // Legacy method without match context - used for backward compatibility
+        return CalculateFantasyPoints(goals, penaltyGoals, penaltiesMissed, ownGoals, assists, yellowCards, redCards, played, null, null);
+    }
+
+    private int CalculateFantasyPoints(int goals, int penaltyGoals, int penaltiesMissed, int ownGoals, int assists, int yellowCards, int redCards, bool played, Match? match, string? playerClub)
+    {
+        // If player didn't play, they get 0 points regardless of team result
+        if (!played) return 0;
         
-        // Basic points for playing
-        if (played) points += 2;
+        int points = 0; // No base points
         
-        // Goal points (different scoring for penalties and own goals)
-        points += goals * 5;
-        points += penaltyGoals * 3; // Penalties worth less than regular goals
-        points -= ownGoals * 2; // Own goals are negative
-        points -= penaltiesMissed * 2; // Missed penalties are negative
+        // Regular goals (excluding penalty goals)
+        var regularGoals = Math.Max(0, goals - penaltyGoals);
+        points += regularGoals * 6; // 6 points per regular goal
         
-        // Assist points
-        points += assists * 3;
+        // Penalty goals
+        points += penaltyGoals * 4; // 4 points per penalty goal
         
-        // Penalties
-        points -= yellowCards * 1;
-        points -= redCards * 3;
+        // Other stats
+        points -= penaltiesMissed * 2; // -2 points for missed penalties
+        points -= ownGoals * 2; // -2 points for own goals
+        points += assists * 4; // 4 points per assist
+        points -= yellowCards * 1; // -1 point per yellow card
+        points -= redCards * 3; // -3 points per red card
         
-        return Math.Max(0, points); // Ensure non-negative
+        // Win/Draw/Lose points (only if match is completed and player actually played)
+        if (match != null && match.IsCompleted && !string.IsNullOrEmpty(playerClub) && match.HomeScore.HasValue && match.AwayScore.HasValue)
+        {
+            var homeScore = match.HomeScore.Value;
+            var awayScore = match.AwayScore.Value;
+            
+            if (homeScore == awayScore)
+            {
+                // Draw
+                points += 1;
+            }
+            else if ((playerClub == match.HomeTeam && homeScore > awayScore) ||
+                     (playerClub == match.AwayTeam && awayScore > homeScore))
+            {
+                // Win
+                points += 3;
+            }
+            // Lose = 0 points (no addition needed)
+        }
+        
+        return Math.Max(0, points);
     }
 
     // Helper method to ensure DateTime is UTC for PostgreSQL compatibility
@@ -918,6 +1064,60 @@ public class AdminController : ControllerBase
             DateTimeKind.Unspecified => DateTime.SpecifyKind(dateTime, DateTimeKind.Utc),
             _ => dateTime
         };
+    }
+
+    // Helper method to find the best matching club by name
+    private static Club? FindBestMatchingClub(string playerClubName, List<Club> allClubs)
+    {
+        if (string.IsNullOrWhiteSpace(playerClubName) || !allClubs.Any())
+            return null;
+
+        var normalizedPlayerClub = playerClubName.Trim().ToLowerInvariant();
+
+        // First, try exact match
+        var exactMatch = allClubs.FirstOrDefault(c => 
+            c.Name.Equals(playerClubName, StringComparison.OrdinalIgnoreCase));
+        if (exactMatch != null)
+            return exactMatch;
+
+        // Second, try contains match (player club name contains database club name or vice versa)
+        var containsMatch = allClubs.FirstOrDefault(c => 
+            normalizedPlayerClub.Contains(c.Name.ToLowerInvariant()) || 
+            c.Name.ToLowerInvariant().Contains(normalizedPlayerClub));
+        if (containsMatch != null)
+            return containsMatch;
+
+        // Third, try similarity matching using Levenshtein distance
+        var bestMatch = allClubs
+            .Select(c => new { Club = c, Distance = CalculateLevenshteinDistance(normalizedPlayerClub, c.Name.ToLowerInvariant()) })
+            .Where(x => x.Distance <= Math.Max(normalizedPlayerClub.Length, x.Club.Name.Length) * 0.3) // Allow 30% difference
+            .OrderBy(x => x.Distance)
+            .FirstOrDefault();
+
+        return bestMatch?.Club;
+    }
+
+    // Helper method to calculate Levenshtein distance for string similarity
+    private static int CalculateLevenshteinDistance(string s1, string s2)
+    {
+        int[,] d = new int[s1.Length + 1, s2.Length + 1];
+
+        for (int i = 0; i <= s1.Length; i++)
+            d[i, 0] = i;
+
+        for (int j = 0; j <= s2.Length; j++)
+            d[0, j] = j;
+
+        for (int i = 1; i <= s1.Length; i++)
+        {
+            for (int j = 1; j <= s2.Length; j++)
+            {
+                int cost = s1[i - 1] == s2[j - 1] ? 0 : 1;
+                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+            }
+        }
+
+        return d[s1.Length, s2.Length];
     }
 
     // DATABASE STATISTICS
@@ -1689,6 +1889,11 @@ public class AdminController : ControllerBase
                 {
                     homeTeam = match.Groups[1].Value.Trim();
                     awayTeam = match.Groups[2].Value.Trim();
+                    
+                    // Remove scores in parentheses from team names (e.g., "Go Ahead Eagles (2-2)" -> "Go Ahead Eagles")
+                    homeTeam = RemoveScoreFromTeamName(homeTeam);
+                    awayTeam = RemoveScoreFromTeamName(awayTeam);
+                    
                     _logger.LogDebug("✅ Successfully parsed teams using pattern: {HomeTeam} vs {AwayTeam}", homeTeam, awayTeam);
                     break;
                 }
@@ -1760,6 +1965,19 @@ public class AdminController : ControllerBase
             _logger.LogError(ex, "❌ Error parsing calendar event: {EventSummary}", eventItem.Summary);
             return null;
         }
+    }
+
+    private string RemoveScoreFromTeamName(string teamName)
+    {
+        if (string.IsNullOrEmpty(teamName))
+            return teamName;
+            
+        // Remove scores in parentheses at the end of team names
+        // Patterns: "(2-1)", "(0-0)", "(3-2)", etc.
+        var scorePattern = @"\s*\(\d+-\d+\)\s*$";
+        var cleanedName = System.Text.RegularExpressions.Regex.Replace(teamName, scorePattern, "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        
+        return cleanedName.Trim();
     }
 
     private string ExtractCompetitionFromEvent(GoogleCalendarEvent eventItem)

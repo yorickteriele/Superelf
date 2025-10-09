@@ -8,6 +8,7 @@ public class PoolDto
     public DateTime CreateTime { get; set; }
     public string OwnerName { get; set; } = string.Empty;
     public List<PoolParticipantDto> Participants { get; set; } = new();
+    public bool AllowSelectionEditing { get; set; } = true;
 }
 
 public class PoolParticipantDto
@@ -33,3 +34,10 @@ public class EditPoolNameDto
 {
     public string NewName { get; set; } = string.Empty;
 }
+
+public class ToggleSelectionEditingDto
+{
+    public bool AllowSelectionEditing { get; set; }
+}
+
+// Scoreboard DTOs are defined in Application layer to avoid duplication

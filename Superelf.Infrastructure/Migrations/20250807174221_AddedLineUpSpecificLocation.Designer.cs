@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Superelf.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Superelf.Infrastructure.Data;
 namespace Superelf.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250807174221_AddedLineUpSpecificLocation")]
+    partial class AddedLineUpSpecificLocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -243,15 +246,15 @@ namespace Superelf.Infrastructure.Migrations
                         {
                             Id = "550e8400-e29b-41d4-a716-446655440002",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "56f8b69a-a667-4631-a970-3fe3dea3071d",
+                            ConcurrencyStamp = "b69a9d2a-3221-4764-b281-33d36a70f9af",
                             Email = "admin@superelf.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SUPERELF.COM",
                             NormalizedUserName = "ADMIN@SUPERELF.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBSZf6PWrcspVNZvj2Cccflhu9q8YOUtTCSw9u8xgd4RyV8E5t3jv3+CySbM5DBOIg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPBAnLgiWswkLSrmSz6GBPMoOJ2wDnhl1A9PM+kvSMNwnzOcRIoFvc3jWxE0cuC96g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6f588a1e-5855-4abe-8235-0279d34f476f",
+                            SecurityStamp = "36d1ff68-e7cb-48d6-bbec-6096a55c70ba",
                             TwoFactorEnabled = false,
                             UserName = "admin@superelf.com"
                         });
@@ -290,6 +293,170 @@ namespace Superelf.Infrastructure.Migrations
                     b.HasIndex("LeagueId");
 
                     b.ToTable("Clubs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6681),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Ajax",
+                            ShortName = "AJX"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6695),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "PSV",
+                            ShortName = "PSV"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6821),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Feyenoord",
+                            ShortName = "FEY"
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6834),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "AZ",
+                            ShortName = "AZ"
+                        },
+                        new
+                        {
+                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6846),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Utrecht",
+                            ShortName = "UTR"
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6868),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Twente",
+                            ShortName = "TWE"
+                        },
+                        new
+                        {
+                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6880),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Vitesse",
+                            ShortName = "VIT"
+                        },
+                        new
+                        {
+                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6893),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "SC Heerenveen",
+                            ShortName = "HEE"
+                        },
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6904),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "FC Groningen",
+                            ShortName = "GRO"
+                        },
+                        new
+                        {
+                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6917),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Willem II",
+                            ShortName = "WIL"
+                        },
+                        new
+                        {
+                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6929),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "NEC",
+                            ShortName = "NEC"
+                        },
+                        new
+                        {
+                            Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6940),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Fortuna Sittard",
+                            ShortName = "FOR"
+                        },
+                        new
+                        {
+                            Id = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6951),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Go Ahead Eagles",
+                            ShortName = "GAE"
+                        },
+                        new
+                        {
+                            Id = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6962),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Heracles Almelo",
+                            ShortName = "HER"
+                        },
+                        new
+                        {
+                            Id = new Guid("10101010-1010-1010-1010-101010101010"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6973),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "PEC Zwolle",
+                            ShortName = "PEC"
+                        },
+                        new
+                        {
+                            Id = new Guid("20202020-2020-2020-2020-202020202020"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6984),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "RKC Waalwijk",
+                            ShortName = "RKC"
+                        },
+                        new
+                        {
+                            Id = new Guid("30303030-3030-3030-3030-303030303030"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6995),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Sparta Rotterdam",
+                            ShortName = "SPA"
+                        },
+                        new
+                        {
+                            Id = new Guid("40404040-4040-4040-4040-404040404040"),
+                            Country = "Netherlands",
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(7008),
+                            LeagueId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Name = "Almere City",
+                            ShortName = "ALM"
+                        });
                 });
 
             modelBuilder.Entity("Superelf.Domain.Entities.FootballPlayer", b =>
@@ -369,7 +536,7 @@ namespace Superelf.Infrastructure.Migrations
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             Country = "Netherlands",
-                            CreatedAt = new DateTime(2025, 8, 9, 15, 29, 28, 202, DateTimeKind.Utc).AddTicks(9314),
+                            CreatedAt = new DateTime(2025, 8, 7, 17, 42, 21, 154, DateTimeKind.Utc).AddTicks(6629),
                             IsActive = true,
                             Name = "Eredivisie",
                             ShortName = "ERE"
@@ -529,9 +696,6 @@ namespace Superelf.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("AllowSelectionEditing")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Code")
                         .IsRequired()

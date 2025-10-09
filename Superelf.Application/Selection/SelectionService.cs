@@ -32,33 +32,75 @@ public class SelectionService {
         string position,
         bool isReserve,
         List<Guid> selectedPlayers,
-        bool isJoker = false
+        bool isJoker = false,
+        int? slotIndex = null
     ) {
-        var maxSelection = isReserve ? 1 : GetMaxSelectionForPosition(position);
+        // Always enforce maximum of 1 player per slot
+        var maxSelection = 1;
 
         if (selectedPlayers.Count > maxSelection)
-            throw new InvalidOperationException($"Maximaal {maxSelection} spelers toegestaan voor deze positie.");
+            throw new InvalidOperationException($"Maximaal {maxSelection} speler toegestaan per positie.");
 
         var lineup = await _selectionRepository.GetLineupWithPlayersAsync(poolId, userId);
         if (lineup == null)
             throw new InvalidOperationException("Lineup niet gevonden.");
 
+        // Check for duplicate players, but exclude the player being replaced if slotIndex is provided
         var existingPlayerIds = lineup.LineupLines.Select(ll => ll.FootballPlayer.Id).ToList();
-        if (selectedPlayers.Any(id => existingPlayerIds.Contains(id)))
-            throw new InvalidOperationException("Speler staat al in de selectie.");
+        
+        if (slotIndex.HasValue)
+        {
+            // If replacing a specific slot, exclude the player currently in that slot
+            var specificPosition = GetSpecificPositionForPlayer(position, slotIndex.Value, isReserve);
+            var playerBeingReplaced = lineup.LineupLines
+                .Where(ll => ll.FootballPlayer.Position == position && 
+                            ll.IsReserve == isReserve && 
+                            ll.SpecificPosition == specificPosition)
+                .Select(ll => ll.FootballPlayer.Id)
+                .FirstOrDefault();
+            
+            var otherPlayerIds = existingPlayerIds.Where(id => id != playerBeingReplaced).ToList();
+            if (selectedPlayers.Any(id => otherPlayerIds.Contains(id)))
+                throw new InvalidOperationException("Speler staat al in de selectie.");
+        }
+        else
+        {
+            // Check all existing players
+            if (selectedPlayers.Any(id => existingPlayerIds.Contains(id)))
+                throw new InvalidOperationException("Speler staat al in de selectie.");
+        }
 
         // Check if there's already a joker selected in the lineup
         if (isJoker && lineup.LineupLines.Any(ll => ll.IsJoker))
             throw new InvalidOperationException("Je kunt maar één speler als joker aanwijzen.");
 
-        var nationalitiesCount = await _selectionRepository.CountUniqueNationalitiesAsync(lineup.Id);
         var newPlayers = _selectionRepository.GetPlayersByIds(selectedPlayers);
         
-        // Get existing nationalities to check against new ones
-        var existingNationalities = lineup.LineupLines
-            .Select(ll => ll.FootballPlayer.Nationality)
-            .Distinct()
-            .ToList();
+        // Get existing nationalities, excluding the player being replaced if slotIndex is provided
+        var existingNationalities = new List<string>();
+        if (slotIndex.HasValue)
+        {
+            // If replacing a specific slot, exclude the nationality of the player being replaced
+            var specificPosition = GetSpecificPositionForPlayer(position, slotIndex.Value, isReserve);
+            var playerBeingReplaced = lineup.LineupLines
+                .Where(ll => ll.FootballPlayer.Position == position && 
+                            ll.IsReserve == isReserve && 
+                            ll.SpecificPosition == specificPosition)
+                .FirstOrDefault();
+            
+            existingNationalities = lineup.LineupLines
+                .Where(ll => ll.FootballPlayer.Id != playerBeingReplaced?.FootballPlayer.Id)
+                .Select(ll => ll.FootballPlayer.Nationality)
+                .Distinct()
+                .ToList();
+        }
+        else
+        {
+            existingNationalities = lineup.LineupLines
+                .Select(ll => ll.FootballPlayer.Nationality)
+                .Distinct()
+                .ToList();
+        }
             
         // Get nationalities that would be added (not already in the lineup)
         var newUniqueNationalities = newPlayers
@@ -67,22 +109,49 @@ public class SelectionService {
             .Where(n => !existingNationalities.Contains(n))
             .Count();
 
-        if (nationalitiesCount + newUniqueNationalities > 15)
+        var currentNationalityCount = existingNationalities.Count;
+        if (currentNationalityCount + newUniqueNationalities > 15)
             throw new InvalidOperationException("Maximaal 15 verschillende landen toegestaan. Kies spelers uit andere landen.");
 
-        var existingLines = lineup.LineupLines
-            .Where(ll => ll.FootballPlayer.Position == position && ll.IsReserve == isReserve)
-            .ToList();
+        // If slotIndex is provided, only remove the specific slot, otherwise remove all for this position
+        List<LineupLine> existingLinesToRemove;
+        if (slotIndex.HasValue)
+        {
+            // Only remove the specific slot being replaced
+            var specificPosition = GetSpecificPositionForPlayer(position, slotIndex.Value, isReserve);
+            existingLinesToRemove = lineup.LineupLines
+                .Where(ll => ll.FootballPlayer.Position == position && 
+                            ll.IsReserve == isReserve && 
+                            ll.SpecificPosition == specificPosition)
+                .ToList();
+        }
+        else
+        {
+            // Fallback: remove all existing lines for this position (for backward compatibility)
+            existingLinesToRemove = lineup.LineupLines
+                .Where(ll => ll.FootballPlayer.Position == position && ll.IsReserve == isReserve)
+                .ToList();
+        }
 
-        await _selectionRepository.RemoveLineupLinesAsync(existingLines);
-        await _selectionRepository.AddLineupLinesAsync(
-            newPlayers.Select(player => new LineupLine {
+        await _selectionRepository.RemoveLineupLinesAsync(existingLinesToRemove);
+        
+        // Create new lineup lines with specific positions
+        var newLineupLines = new List<LineupLine>();
+        for (int i = 0; i < newPlayers.Count; i++)
+        {
+            // Use slotIndex if provided, otherwise fall back to loop index
+            var positionIndex = slotIndex.HasValue ? slotIndex.Value : i;
+            var specificPosition = GetSpecificPositionForPlayer(position, positionIndex, isReserve);
+            newLineupLines.Add(new LineupLine {
                 Lineup = lineup,
-                FootballPlayer = player,
+                FootballPlayer = newPlayers[i],
                 IsReserve = isReserve,
+                SpecificPosition = specificPosition,
                 IsJoker = isJoker && newPlayers.Count == 1 // Only set joker if one player is selected
-            })
-        );
+            });
+        }
+        
+        await _selectionRepository.AddLineupLinesAsync(newLineupLines);
         
         // Update complete status based on whether all required positions are filled
         await UpdateLineupCompletionStatus(lineup.Id);
@@ -156,6 +225,51 @@ public class SelectionService {
             "Midfielder" => 3,
             "Forward" => 3,
             _ => throw new ArgumentException("Ongeldige positie")
+        };
+    }
+
+    private int GetSpecificPositionForPlayer(string position, int index, bool isReserve)
+    {
+        if (isReserve)
+        {
+            // Reserve positions: 100-199 range
+            return position switch
+            {
+                "Goalkeeper" => 100,
+                "Defender" => 101,
+                "Midfielder" => 102,
+                "Forward" => 103,
+                _ => 100 + index
+            };
+        }
+        
+        // Starting positions based on 4-3-3 formation
+        return position switch
+        {
+            "Goalkeeper" => 1, // Goalkeeper
+            "Defender" => index switch
+            {
+                0 => 2, // Left Back
+                1 => 3, // Left Center Back
+                2 => 4, // Right Center Back
+                3 => 5, // Right Back
+                _ => 2 + index
+            },
+            "Midfielder" => index switch
+            {
+                0 => 6, // Left Midfielder
+                1 => 7, // Center Midfielder
+                2 => 8, // Right Midfielder
+                _ => 6 + index
+            },
+            "Forward" => index switch
+            {
+                0 => 9,  // Left Wing
+                1 => 10, // Center Forward
+                2 => 11, // Right Wing
+                _ => 9 + index
+            },
+            _ => index + 1
         };
     }
 

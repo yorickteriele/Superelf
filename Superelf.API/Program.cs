@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Superelf.Application.Authentication;
 using Superelf.Application.Pool;
 using Superelf.Application.Selection;
+using Superelf.Application.Performance;
+using Superelf.Application;
 using Superelf.Domain.Entities;
 using Superelf.Infrastructure.Data;
 using Superelf.Infrastructure.Repositories;
@@ -68,6 +70,11 @@ builder.Services.AddScoped<IPoolRepository, PoolRepository>();
 builder.Services.AddScoped<PoolService>();
 builder.Services.AddScoped<ISelectionRepository, SelectionRepository>();
 builder.Services.AddScoped<SelectionService>();
+builder.Services.AddScoped<IPerformanceRepository, PerformanceRepository>();
+builder.Services.AddScoped<IScoringService, ScoringService>();
+
+// Register HttpClient for image downloads
+builder.Services.AddHttpClient<IImageService, ImageService>();
 
 // Register CORS policy
 builder.Services.AddCors(options =>
@@ -96,8 +103,20 @@ using (var scope = app.Services.CreateScope())
         Environment.Exit(0);
 }
 
+// Configure static file serving for images
+var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "Superelf.Web", "public");
+if (Directory.Exists(webRootPath))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(webRootPath),
+        RequestPath = ""
+    });
+}
+
 // Use CORS before authentication/authorization
 app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

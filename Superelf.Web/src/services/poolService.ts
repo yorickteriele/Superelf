@@ -7,6 +7,7 @@ export interface Pool {
   createTime: string;
   ownerName: string;
   participants: PoolParticipant[];
+  allowSelectionEditing: boolean;
 }
 
 export interface PoolParticipant {
@@ -15,6 +16,23 @@ export interface PoolParticipant {
   selectionComplete: boolean;
   selectedPlayers: number;
   hasJoker: boolean;
+}
+
+export interface UserScore {
+  userId: string;
+  userName: string;
+  score: number;
+  playerScores: PlayerScore[];
+  hasUsedJoker: boolean;
+}
+
+export interface PlayerScore {
+  playerId: string;
+  playerName: string;
+  position: string;
+  club: string;
+  score: number;
+  isJoker: boolean;
 }
 
 export interface CreatePoolRequest {
@@ -27,6 +45,10 @@ export interface JoinPoolRequest {
 
 export interface EditPoolNameRequest {
   newName: string;
+}
+
+export interface ToggleSelectionEditingRequest {
+  allowSelectionEditing: boolean;
 }
 
 export interface ApiResponse {
@@ -122,6 +144,31 @@ export const poolService = {
       return {
         success: false,
         message: error.response?.data || 'Failed to remove participant'
+      };
+    }
+  },
+
+  getScoreboard: async (poolId: string): Promise<UserScore[]> => {
+    try {
+      const response = await apiClient.get(`/pools/${poolId}/scoreboard`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch scoreboard:', error);
+      return [];
+    }
+  },
+
+  toggleSelectionEditing: async (poolId: string, toggleData: ToggleSelectionEditingRequest): Promise<ApiResponse> => {
+    try {
+      const response = await apiClient.put(`/pools/${poolId}/toggle-selection-editing`, toggleData);
+      return {
+        success: true,
+        message: response.data
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data || 'Failed to toggle selection editing'
       };
     }
   }
