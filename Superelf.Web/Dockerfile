@@ -1,11 +1,27 @@
-# Production stage with nginx - use pre-built files
+# Build stage
+FROM node:16-alpine as build
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy all files
+COPY . .
+
+# Build the app
+RUN npm run build
+
+# Production stage with nginx
 FROM nginx:alpine
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy pre-built app (built by GitHub Actions)
-COPY build /usr/share/nginx/html
+# Copy built app from build stage
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Create a non-root user
 RUN addgroup -g 1001 -S superelf && \
