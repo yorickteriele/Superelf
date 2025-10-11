@@ -133,6 +133,9 @@ jobs:
         cd Superelf.Web
         npm install
         rm -rf build
+        # Copy public folder to build directory before building
+        mkdir -p build
+        cp -r public/* build/ 2>/dev/null || :
         # Set CI=false to prevent ESLint errors from failing the build
         CI=false npm run build
     
