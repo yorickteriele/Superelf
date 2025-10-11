@@ -7,6 +7,10 @@ using Superelf.Infrastructure.Data;
 
 namespace Superelf.API.Controllers
 {
+    /// <summary>
+    /// Controller responsible for system diagnostics and health checks, providing endpoints
+    /// to monitor application health, database connectivity, and CORS configuration.
+    /// </summary>
     [ApiController]
     [Route("api/diagnostics")]
     public class DiagnosticsController : ControllerBase
@@ -14,12 +18,21 @@ namespace Superelf.API.Controllers
         private readonly ILogger<DiagnosticsController> _logger;
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// Initializes a new instance of the DiagnosticsController.
+        /// </summary>
+        /// <param name="logger">Logger for diagnostic events</param>
+        /// <param name="configuration">Application configuration access</param>
         public DiagnosticsController(ILogger<DiagnosticsController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Basic health check endpoint that verifies API availability and CORS configuration.
+        /// </summary>
+        /// <returns>Health status information including timestamp and environment details</returns>
         [HttpGet("ping")]
         [EnableCors("AllowFrontend")]
         public IActionResult Ping()
@@ -65,10 +78,14 @@ namespace Superelf.API.Controllers
             }
         }
         
+        /// <summary>
+        /// Tests CORS configuration by returning information about the request's origin and headers.
+        /// Helps diagnose CORS-related issues by showing whether requests are treated as cross-origin.
+        /// </summary>
+        /// <returns>CORS-related information about the current request</returns>
         [HttpGet("cors-test")]
         public IActionResult CorsTest()
         {
-            // Return different response based on whether this is a CORS or same-origin request
             var origin = Request.Headers.ContainsKey("Origin") ? Request.Headers["Origin"].ToString() : null;
             var host = $"{Request.Scheme}://{Request.Host}";
             var isCorsRequest = !string.IsNullOrEmpty(origin) && origin != host;
@@ -81,12 +98,17 @@ namespace Superelf.API.Controllers
             });
         }
         
+        /// <summary>
+        /// Performs a comprehensive database health check, verifying connectivity,
+        /// migrations status, and general database configuration.
+        /// </summary>
+        /// <param name="dbContext">The application's database context</param>
+        /// <returns>Detailed database health information including migration status and configuration</returns>
         [HttpGet("db-health")]
         public async Task<IActionResult> CheckDatabaseHealth([FromServices] ApplicationDbContext dbContext)
         {
             try
             {
-                // Check if the database connection is working
                 bool canConnect = await dbContext.Database.CanConnectAsync();
                 
                 // Get database provider
@@ -163,11 +185,16 @@ namespace Superelf.API.Controllers
             }
         }
         
+        /// <summary>
+        /// Resets the database migrations history by dropping the EF Core migrations table.
+        /// Only available in Development or Test environments.
+        /// </summary>
+        /// <param name="dbContext">The application's database context</param>
+        /// <returns>Confirmation of migrations reset</returns>
         [HttpGet("reset-migrations")]
-        [ApiExplorerSettings(IgnoreApi = true)] // Hide from Swagger
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ResetMigrations([FromServices] ApplicationDbContext dbContext)
         {
-            // This endpoint should only be accessible in Development or Test
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (environment != "Development" && environment != "Test")
             {

@@ -11,6 +11,10 @@ namespace Superelf.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+/// <summary>
+/// Controller responsible for managing team selections in fantasy football pools.
+/// Handles player selection, formation setup, and joker assignment.
+/// </summary>
 public class SelectionController : ControllerBase
 {
     private readonly SelectionService _selectionService;
@@ -25,6 +29,12 @@ public class SelectionController : ControllerBase
     }
 
     [HttpGet("{poolId}")]
+    /// <summary>
+    /// Gets the current user's team selection for a specific pool.
+    /// Also provides lists of available players for each position.
+    /// </summary>
+    /// <param name="poolId">Unique identifier of the pool</param>
+    /// <returns>Complete team selection information including available players</returns>
     public async Task<ActionResult<SelectionDto>> GetSelection(Guid poolId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -364,6 +374,12 @@ public class SelectionController : ControllerBase
     }
 
     [HttpPost("{poolId}/submit")]
+    /// <summary>
+    /// Submits or updates player selections for a specific position in the team.
+    /// </summary>
+    /// <param name="poolId">Unique identifier of the pool</param>
+    /// <param name="submitDto">Selection details including position and chosen players</param>
+    /// <returns>Confirmation of selection update</returns>
     public async Task<ActionResult> SubmitSelection(Guid poolId, SubmitSelectionDto submitDto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -405,6 +421,13 @@ public class SelectionController : ControllerBase
     }
 
     [HttpPost("{poolId}/joker")]
+    /// <summary>
+    /// Sets or updates the joker player in the team selection.
+    /// A joker player earns double points in matches.
+    /// </summary>
+    /// <param name="poolId">Unique identifier of the pool</param>
+    /// <param name="jokerDto">Details of the player to set as joker</param>
+    /// <returns>Confirmation of joker update</returns>
     public async Task<ActionResult> SetJoker(Guid poolId, SetJokerDto jokerDto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -437,6 +460,15 @@ public class SelectionController : ControllerBase
     }
 
     [HttpGet("{poolId}/players/{position}")]
+    /// <summary>
+    /// Gets available players for selection in a specific position.
+    /// Includes validation info like nationality constraints and already selected players.
+    /// </summary>
+    /// <param name="poolId">Unique identifier of the pool</param>
+    /// <param name="position">Player position to get (GK, DEF, MID, FWD)</param>
+    /// <param name="isReserve">Whether selecting for reserve positions</param>
+    /// <param name="maxSelection">Maximum number of players that can be selected</param>
+    /// <returns>Available players and selection constraints</returns>
     public async Task<ActionResult<SelectionTableDto>> GetPlayersForSelection(
         Guid poolId,
         string position,

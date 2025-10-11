@@ -11,6 +11,10 @@ namespace Superelf.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+/// <summary>
+/// Controller responsible for managing fantasy football pools.
+/// Handles pool creation, joining, participant management, and scoreboard calculations.
+/// </summary>
 public class PoolsController : ControllerBase
 {
     private readonly AuthenticationService _authenticationService;
@@ -31,6 +35,10 @@ public class PoolsController : ControllerBase
     }
 
     [HttpGet]
+    /// <summary>
+    /// Gets all fantasy football pools that the current user participates in.
+    /// </summary>
+    /// <returns>List of pools with basic information and participant status</returns>
     public async Task<ActionResult<List<PoolDto>>> GetUserPools()
     {
         var user = await _authenticationService.GetCurrentUserAsync(User);
@@ -53,6 +61,11 @@ public class PoolsController : ControllerBase
     }
 
     [HttpPost]
+    /// <summary>
+    /// Creates a new fantasy football pool.
+    /// </summary>
+    /// <param name="createPoolDto">Pool creation details including name</param>
+    /// <returns>Newly created pool information</returns>
     public async Task<ActionResult<PoolDto>> CreatePool(CreatePoolDto createPoolDto)
     {
         var user = await _authenticationService.GetCurrentUserAsync(User);
@@ -94,6 +107,11 @@ public class PoolsController : ControllerBase
     }
 
     [HttpPost("join")]
+    /// <summary>
+    /// Adds the current user to an existing pool using a join code.
+    /// </summary>
+    /// <param name="joinPoolDto">Pool join details including invite code</param>
+    /// <returns>Success or error response</returns>
     public async Task<ActionResult> JoinPool(JoinPoolDto joinPoolDto)
     {
         var user = await _authenticationService.GetCurrentUserAsync(User);
@@ -118,6 +136,11 @@ public class PoolsController : ControllerBase
     }
 
     [HttpGet("{poolId}")]
+    /// <summary>
+    /// Gets detailed information about a specific pool including participants and their selection status.
+    /// </summary>
+    /// <param name="poolId">Unique identifier of the pool to retrieve</param>
+    /// <returns>Pool information with participant details</returns>
     public async Task<ActionResult<PoolDto>> GetPool(Guid poolId)
     {
         var user = await _authenticationService.GetCurrentUserAsync(User);

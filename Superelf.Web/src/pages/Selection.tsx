@@ -11,6 +11,7 @@ import { poolService, Pool } from '../services/poolService';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Selection.css';
 
+/** Interactive team selection interface with field visualization */
 const Selection: React.FC = () => {
   const { poolId, userId } = useParams<{ poolId: string; userId?: string }>();
   const navigate = useNavigate();

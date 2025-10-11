@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/** User registration form with validation */
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -15,6 +16,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const [formError, setFormError] = useState('');
 
+  /** Updates registration form state */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prevData => ({
@@ -23,11 +25,11 @@ const Register: React.FC = () => {
     }));
   };
 
+  /** Validates and submits registration data */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError('');
     
-    // Simple validation
     if (!formData.username || !formData.email || !formData.password) {
       setFormError('Please fill in all required fields');
       return;

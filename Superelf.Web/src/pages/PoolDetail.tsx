@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import PlayerScoresModal from '../components/common/PlayerScoresModal';
 import selectionService, { SelectionDto } from '../services/selectionService';
 
+/** Pool details with participant management and leaderboard */
 const PoolDetail: React.FC = () => {
   const { poolId } = useParams<{ poolId: string }>();
   const [pool, setPool] = useState<Pool | null>(null);

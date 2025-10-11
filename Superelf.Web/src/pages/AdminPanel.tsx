@@ -13,6 +13,7 @@ import { MatchManagement } from '../components/admin/MatchManagement';
 import { LeagueManagement } from '../components/admin/LeagueManagement';
 import { showConfirmDialog } from '../components/common/ConfirmDialog';
 
+/** Admin dashboard for system management and statistics */
 const AdminPanel: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'players' | 'clubs' | 'matches' | 'leagues' | 'maintenance'>('dashboard');
@@ -30,14 +31,19 @@ const AdminPanel: React.FC = () => {
   const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
   
 
-  // Always call hooks at the top level
+  /**
+   * Load initial data when the active tab changes or user state updates.
+   * Only loads data if the user has admin privileges.
+   */
   useEffect(() => {
-    // Only load data if user is admin
     if (user && isAdmin(user)) {
       loadInitialData();
     }
   }, [activeTab, user]);
 
+  /**
+   * Auto-clear error and success messages after 5 seconds
+   */
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
@@ -48,7 +54,7 @@ const AdminPanel: React.FC = () => {
     }
   }, [error, success]);
 
-  // Check if user is admin
+  // Redirect non-admin users to login
   if (!user || !isAdmin(user)) {
     return <Navigate to="/login" replace />;
   }

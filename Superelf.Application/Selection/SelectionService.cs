@@ -4,13 +4,29 @@ using Superelf.Domain.Entities;
 
 namespace Superelf.Application.Selection;
 
-public class SelectionService {
+/// <summary>
+/// Service responsible for managing user team selections, including player lineups,
+/// formations, and joker selections. Enforces game rules like nationality limits
+/// and formation requirements.
+/// </summary>
+public class SelectionService : ISelectionService {
     private readonly ISelectionRepository _selectionRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the SelectionService.
+    /// </summary>
+    /// <param name="selectionRepository">Repository for accessing lineup and player data</param>
     public SelectionService(ISelectionRepository selectionRepository) {
         _selectionRepository = selectionRepository;
     }
 
+    /// <summary>
+    /// Retrieves or creates a lineup for a user in a specific pool.
+    /// </summary>
+    /// <param name="poolId">The ID of the pool</param>
+    /// <param name="userId">The ID of the user</param>
+    /// <returns>The user's lineup for the pool</returns>
+    /// <exception cref="InvalidOperationException">Thrown when user is not a pool participant</exception>
     public async Task<Lineup> GetOrCreateLineupAsync(Guid poolId, string userId) {
         var lineup = await _selectionRepository.GetLineupWithPlayersAsync(poolId, userId);
         if (lineup == null) {
@@ -26,6 +42,17 @@ public class SelectionService {
         return lineup!;
     }
 
+    /// <summary>
+    /// Submits a player selection for a specific position in a user's lineup.
+    /// </summary>
+    /// <param name="poolId">The ID of the pool</param>
+    /// <param name="userId">The ID of the user making the selection</param>
+    /// <param name="position">Player position (Goalkeeper, Defender, Midfielder, Forward)</param>
+    /// <param name="isReserve">Whether this is a reserve player selection</param>
+    /// <param name="selectedPlayers">List of player IDs to select</param>
+    /// <param name="isJoker">Whether to mark the selected player as a joker</param>
+    /// <param name="slotIndex">Specific slot index for the position (optional)</param>
+    /// <exception cref="InvalidOperationException">Thrown when selection violates game rules</exception>
     public async Task SubmitSelectionAsync(
         Guid poolId,
         string userId,
@@ -157,6 +184,13 @@ public class SelectionService {
         await UpdateLineupCompletionStatus(lineup.Id);
     }
     
+    /// <summary>
+    /// Sets or updates the joker player selection for a user's lineup.
+    /// </summary>
+    /// <param name="poolId">The ID of the pool</param>
+    /// <param name="userId">The ID of the user</param>
+    /// <param name="playerId">The ID of the player to set as joker</param>
+    /// <exception cref="InvalidOperationException">Thrown when lineup is not found</exception>
     public async Task SetJokerAsync(Guid poolId, string userId, Guid playerId) {
         var lineup = await _selectionRepository.GetLineupWithPlayersAsync(poolId, userId);
         if (lineup == null)
@@ -170,6 +204,11 @@ public class SelectionService {
         await _selectionRepository.UpdateLineupAsync(lineup);
     }
     
+    /// <summary>
+    /// Updates the completion status of a lineup based on formation and nationality requirements.
+    /// A lineup is complete when it has the required 1-4-3-3 formation plus reserves and 15 unique nationalities.
+    /// </summary>
+    /// <param name="lineupId">The ID of the lineup to update</param>
     private async Task UpdateLineupCompletionStatus(Guid lineupId) {
         var lineup = await _selectionRepository.GetLineupByIdAsync(lineupId);
         if (lineup == null) return;
@@ -199,6 +238,12 @@ public class SelectionService {
         await _selectionRepository.UpdateLineupAsync(lineup);
     }
 
+    /// <summary>
+    /// Retrieves statistics about a lineup including player count, nationality count, and joker status.
+    /// </summary>
+    /// <param name="lineupId">The ID of the lineup</param>
+    /// <returns>Statistical information about the lineup</returns>
+    /// <exception cref="InvalidOperationException">Thrown when lineup is not found</exception>
     public async Task<LineupStatistics> GetLineupStatisticsAsync(Guid lineupId) {
         var lineup = await _selectionRepository.GetLineupByIdAsync(lineupId);
         if (lineup == null)
@@ -218,6 +263,12 @@ public class SelectionService {
         return stats;
     }
 
+    /// <summary>
+    /// Gets the maximum number of players allowed for a specific position in the base formation (1-4-3-3).
+    /// </summary>
+    /// <param name="position">The player position</param>
+    /// <returns>Maximum number of players allowed for the position</returns>
+    /// <exception cref="ArgumentException">Thrown when position is invalid</exception>
     private int GetMaxSelectionForPosition(string position) {
         return position switch {
             "Goalkeeper" => 1,
@@ -228,6 +279,15 @@ public class SelectionService {
         };
     }
 
+    /// <summary>
+    /// Maps a player's position and index to a specific position number in the formation.
+    /// For base formation: 1 (GK), 2-5 (DEF), 6-8 (MID), 9-11 (FWD)
+    /// For reserves: 100-103 for each position type
+    /// </summary>
+    /// <param name="position">The player's general position</param>
+    /// <param name="index">Index within the position group</param>
+    /// <param name="isReserve">Whether this is a reserve position</param>
+    /// <returns>Specific position number in the formation</returns>
     private int GetSpecificPositionForPlayer(string position, int index, bool isReserve)
     {
         if (isReserve)
@@ -273,15 +333,43 @@ public class SelectionService {
         };
     }
 
+    /// <summary>
+    /// Retrieves all available football players for a specific position.
+    /// </summary>
+    /// <param name="position">The position to filter players by</param>
+    /// <returns>List of players for the specified position</returns>
     public async Task<List<FootballPlayer>> GetFootballPlayersByPosition(string position) {
         return await _selectionRepository.GetPlayersByPositionAsync(position);
     }
 }
 
+/// <summary>
+/// Statistical information about a lineup's composition and completion status.
+/// </summary>
 public class LineupStatistics {
+    /// <summary>
+    /// Gets or sets the total number of players in the lineup.
+    /// </summary>
     public int TotalPlayers { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of unique nationalities in the lineup.
+    /// Must be exactly 15 for a valid lineup.
+    /// </summary>
     public int UniqueNationalities { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether a joker player has been selected.
+    /// </summary>
     public bool HasJoker { get; set; }
+
+    /// <summary>
+    /// Gets or sets the ID of the currently selected joker player.
+    /// </summary>
     public Guid JokerPlayerId { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the lineup has a valid 1-4-3-3 formation with reserves.
+    /// </summary>
     public bool FormationComplete { get; set; }
 }

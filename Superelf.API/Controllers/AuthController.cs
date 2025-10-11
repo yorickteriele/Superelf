@@ -9,12 +9,21 @@ namespace Superelf.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>
+/// Controller responsible for handling user authentication operations including registration, login, and logout.
+/// </summary>
 public class AuthController : ControllerBase
 {
     private readonly AuthenticationService _authService;
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the AuthController.
+    /// </summary>
+    /// <param name="authService">Service for handling core authentication operations</param>
+    /// <param name="jwtService">Service for JWT token generation and validation</param>
+    /// <param name="logger">Logger for authentication events</param>
     public AuthController(
         AuthenticationService authService,
         IJwtService jwtService,
@@ -25,6 +34,11 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Registers a new user in the system.
+    /// </summary>
+    /// <param name="registerDto">The registration details including username, email, and password</param>
+    /// <returns>Authentication response containing JWT token if registration is successful</returns>
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
@@ -73,6 +87,11 @@ public class AuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Authenticates a user and provides a JWT token for subsequent requests.
+    /// </summary>
+    /// <param name="loginDto">The login credentials including email/username and password</param>
+    /// <returns>Authentication response containing JWT token if login is successful</returns>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
@@ -137,11 +156,14 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Handles user logout. Since JWT is used, this is primarily a client-side operation.
+    /// The client should discard the JWT token after receiving the response.
+    /// </summary>
+    /// <returns>A success response indicating the user can be logged out</returns>
     [HttpPost("logout")]
     public ActionResult<AuthResponseDto> Logout()
     {
-        // With JWT tokens, logout is handled client-side by removing the token
-        // There's no server-side session to clear
         return Ok(new AuthResponseDto 
         { 
             Success = true, 

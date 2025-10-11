@@ -5,12 +5,31 @@ using System.Runtime.InteropServices;
 
 namespace Superelf.Application;
 
+/// <summary>
+/// Interface for managing player images, including downloading and cleanup operations.
+/// </summary>
 public interface IImageService
 {
+    /// <summary>
+    /// Downloads an image from a URL and saves it to local storage with a sanitized filename.
+    /// </summary>
+    /// <param name="imageUrl">URL of the image to download</param>
+    /// <param name="playerName">Name of the player (used for filename generation)</param>
+    /// <returns>Local file path for the saved image, or null if download failed</returns>
     Task<string?> DownloadAndSaveImageAsync(string? imageUrl, string playerName);
+
+    /// <summary>
+    /// Deletes an image file from local storage.
+    /// </summary>
+    /// <param name="imagePath">Path to the image file to delete</param>
+    /// <returns>True if deletion was successful or file doesn't exist, false on error</returns>
     Task<bool> DeleteImageAsync(string? imagePath);
 }
 
+/// <summary>
+/// Service for managing player images, handling download, storage, and cleanup operations.
+/// Supports configurable storage locations and ensures proper file system permissions.
+/// </summary>
 public class ImageService : IImageService
 {
     private readonly ILogger<ImageService> _logger;
@@ -18,6 +37,13 @@ public class ImageService : IImageService
     private readonly HttpClient _httpClient;
     private readonly string _imagesDirectory;
 
+    /// <summary>
+    /// Initializes a new instance of the ImageService.
+    /// </summary>
+    /// <param name="logger">Logger for image operations</param>
+    /// <param name="configuration">Configuration for image storage settings</param>
+    /// <param name="httpClient">HTTP client for downloading images</param>
+    /// <exception cref="Exception">Thrown if image directory initialization fails</exception>
     public ImageService(ILogger<ImageService> logger, IConfiguration configuration, HttpClient httpClient)
     {
         _logger = logger;
@@ -130,6 +156,12 @@ public class ImageService : IImageService
         }
     }
 
+    /// <summary>
+    /// Ensures that a directory exists, creating it if necessary.
+    /// When on Unix-like systems, sets appropriate file permissions.
+    /// </summary>
+    /// <param name="path">The directory path to ensure exists</param>
+    /// <exception cref="Exception">Thrown if directory creation or permission setting fails</exception>
     private void EnsureDirectoryExists(string path)
     {
         try
@@ -139,14 +171,15 @@ public class ImageService : IImageService
                 Directory.CreateDirectory(path);
                 _logger.LogInformation("Created directory: {Path}", path);
                 
-                // Set appropriate permissions if on Unix
+                // For Unix-like systems, try to set appropriate directory permissions
+                #if !WINDOWS
                 if (Environment.OSVersion.Platform == PlatformID.Unix || 
                     Environment.OSVersion.Platform == PlatformID.MacOSX)
                 {
                     try
                     {
                         // This requires .NET 6.0 or later
-                        File.SetUnixFileMode(path, 
+                        System.IO.File.SetUnixFileMode(path, 
                             UnixFileMode.UserRead | 
                             UnixFileMode.UserWrite | 
                             UnixFileMode.UserExecute |
@@ -158,8 +191,10 @@ public class ImageService : IImageService
                     catch (PlatformNotSupportedException)
                     {
                         // Ignore on platforms that don't support UnixFileMode
+                        _logger.LogDebug("UnixFileMode not supported on this platform");
                     }
                 }
+                #endif
             }
         }
         catch (Exception ex)
@@ -169,6 +204,12 @@ public class ImageService : IImageService
         }
     }
 
+    /// <summary>
+    /// Creates a safe filename from a player name by removing invalid characters
+    /// and limiting the length. Falls back to a GUID if no name provided.
+    /// </summary>
+    /// <param name="playerName">The player name to convert to a safe filename</param>
+    /// <returns>A safe filename without invalid characters and reasonable length</returns>
     private static string CreateSafeFileName(string playerName)
     {
         if (string.IsNullOrWhiteSpace(playerName))
@@ -187,6 +228,12 @@ public class ImageService : IImageService
         return safeName.Trim().Substring(0, Math.Min(safeName.Length, 50));
     }
 
+    /// <summary>
+    /// Extracts the file extension from a URL's path. Defaults to .jpg if
+    /// no valid extension is found.
+    /// </summary>
+    /// <param name="url">The URL to extract extension from</param>
+    /// <returns>The file extension including the dot (e.g., ".jpg")</returns>
     private static string GetFileExtensionFromUrl(string url)
     {
         try
