@@ -2,21 +2,33 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Navigation bar component providing site-wide navigation and user authentication status.
+ * Features include:
+ * - Responsive navigation menu
+ * - Dynamic links based on authentication state
+ * - User dropdown menu with profile and logout options
+ * - Admin panel access for users with admin role
+ * 
+ * @returns Navigation bar with dynamic content based on user authentication
+ */
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  /**
+   * Handles user logout action by clearing authentication
+   * and redirecting to home page.
+   */
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  // Initialize Bootstrap JavaScript for dropdowns - simplified approach
   useEffect(() => {
-    // Skip Bootstrap JS import for now to avoid TypeScript issues
-    // Bootstrap CSS classes will still work for styling
-    console.log('Navbar initialized - using Bootstrap CSS only');
+    // Component relies on Bootstrap CSS classes for styling
+    // Bootstrap JS functionality is handled through data attributes
   }, []);
 
   return (

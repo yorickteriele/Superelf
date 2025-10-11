@@ -9,9 +9,9 @@ public class PoolService {
     private const int CodeLength = 6;
     private const int MaxAttempts = 10;
     private readonly IPoolRepository _poolRepository;
-    private readonly SelectionService _selectionService;
+    private readonly ISelectionService _selectionService;
 
-    public PoolService(IPoolRepository poolRepository, SelectionService selectionService) {
+    public PoolService(IPoolRepository poolRepository, ISelectionService selectionService) {
         _poolRepository = poolRepository;
         _selectionService = selectionService;
     }

@@ -3,6 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { diagnosticsService } from '../services/diagnosticsService';
 
+/**
+ * Login page component providing user authentication functionality.
+ * Features:
+ * - Email/username and password authentication
+ * - Remember me option
+ * - API connectivity status
+ * - CORS compatibility check
+ * - Error handling and validation
+ * - Responsive design
+ * 
+ * @returns Login form with status indicators
+ */
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     emailOrUsername: '',
@@ -18,24 +30,24 @@ const Login: React.FC = () => {
     message: 'Checking API connectivity...'
   });
 
-  // Run API connectivity test on component mount
+  /**
+   * Checks API connectivity and CORS configuration on mount.
+   * Updates status message based on connectivity test results.
+   */
   useEffect(() => {
     const checkApiConnection = async () => {
       try {
-        // Test basic API connectivity
         const isAvailable = await diagnosticsService.pingApi();
         setApiStatus({
           available: isAvailable,
           message: isAvailable ? 'API is available' : 'API appears to be offline'
         });
         
-        // If API is available, test CORS
         if (isAvailable) {
           await diagnosticsService.checkCors();
           await diagnosticsService.testPreflightRequest();
         }
       } catch (err) {
-        // Removed console.error
         setApiStatus({
           available: false,
           message: 'Failed to connect to the API'
@@ -46,6 +58,7 @@ const Login: React.FC = () => {
     checkApiConnection();
   }, []);
 
+  /** Updates form state from input changes */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prevData => ({
@@ -54,11 +67,11 @@ const Login: React.FC = () => {
     }));
   };
 
+  /** Processes login form submission and authentication */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError('');
     
-    // Simple validation
     if (!formData.emailOrUsername || !formData.password) {
       setFormError('Please fill in all fields');
       return;

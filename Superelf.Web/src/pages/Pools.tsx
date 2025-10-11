@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Pool, poolService } from '../services/poolService';
 import { useAuth } from '../context/AuthContext';
 
+/** Pool management: view, create, join, and navigate pools */
 const Pools: React.FC = () => {
   const [pools, setPools] = useState<Pool[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,6 +18,10 @@ const Pools: React.FC = () => {
     fetchPools();
   }, []);
 
+  /**
+   * Fetches all pools that the current user is a member of.
+   * Updates state with the fetched pools or empty array on error.
+   */
   const fetchPools = async () => {
     setLoading(true);
     try {
@@ -30,6 +35,12 @@ const Pools: React.FC = () => {
     }
   };
 
+  /**
+   * Handles the creation of a new pool.
+   * Validates the pool name and creates a new pool using the pool service.
+   * 
+   * @param e - Form submission event
+   */
   const handleCreatePool = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -55,6 +66,12 @@ const Pools: React.FC = () => {
     }
   };
 
+  /**
+   * Handles joining an existing pool using a pool code.
+   * Validates the pool code and attempts to join using the pool service.
+   * 
+   * @param e - Form submission event
+   */
   const handleJoinPool = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -80,6 +97,11 @@ const Pools: React.FC = () => {
     }
   };
 
+  /**
+   * Navigates to the detailed view of a specific pool.
+   * 
+   * @param poolId - The ID of the pool to view
+   */
   const handleViewPool = (poolId: string) => {
     navigate(`/pools/${poolId}`);
   };
