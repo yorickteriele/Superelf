@@ -9,6 +9,7 @@ COPY Superelf.API/Superelf.API.csproj Superelf.API/
 COPY Superelf.Application/Superelf.Application.csproj Superelf.Application/
 COPY Superelf.Domain/Superelf.Domain.csproj Superelf.Domain/
 COPY Superelf.Infrastructure/Superelf.Infrastructure.csproj Superelf.Infrastructure/
+COPY Superelf.Tests/Superelf.Tests.csproj Superelf.Tests/
 
 # Restore dependencies
 RUN dotnet restore Superelf.Web.sln
