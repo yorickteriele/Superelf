@@ -17,8 +17,6 @@ RUN npm run build
 # Production stage with nginx
 FROM nginx:alpine
 
-# Copy custom nginx config
-COPY --from=build /app/superelf/nginx/superelf.conf /etc/nginx/conf.d/default.conf
 
 # Copy built app from build stage
 COPY --from=build /app/build /usr/share/nginx/html
