@@ -1,18 +1,27 @@
-# Production stage with nginx - use pre-built files
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --silent
+COPY . .
+
+ARG REACT_APP_API_URL=/api
+ARG REACT_APP_ENVIRONMENT=production
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
+
+RUN npm run build
+
+# Production stage
 FROM nginx:alpine
 
-# Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy pre-built app (built by GitHub Actions)
-COPY build /usr/share/nginx/html
-
-# Create a non-root user
 RUN addgroup -g 1001 -S superelf && \
-    adduser -S superelf -u 1001
-
-# Change ownership of nginx directories
-RUN chown -R superelf:superelf /usr/share/nginx/html && \
+    adduser -S superelf -u 1001 && \
+    chown -R superelf:superelf /usr/share/nginx/html && \
     chown -R superelf:superelf /var/cache/nginx && \
     chown -R superelf:superelf /var/log/nginx && \
     chown -R superelf:superelf /etc/nginx/conf.d && \
@@ -20,7 +29,5 @@ RUN chown -R superelf:superelf /usr/share/nginx/html && \
     chown -R superelf:superelf /var/run/nginx.pid
 
 USER superelf
-
-# Expose port
 EXPOSE 3000
 CMD ["nginx", "-g", "daemon off;"]
