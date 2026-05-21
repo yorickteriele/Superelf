@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: superelf-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: SuperelfDbTest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD}
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - superelf-test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-test:
+    build:
+      context: .
+      dockerfile: Superelf.API/Dockerfile
+    container_name: superelf-api-test
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Test
+      ConnectionStrings__DefaultConnection: "Host=postgres-test;Port=5432;Database=SuperelfDbTest;Username=postgres;Password=${TEST_DB_PASSWORD}"
+      JwtSettings__Key: ${TEST_JWT_SECRET}
+      JwtSettings__Issuer: SuperelfAPI
+      JwtSettings__Audience: SuperelfClient
+      JwtSettings__ExpiryInMinutes: 60
+      AllowedOrigins__0: https://superelf-test.yorickteriele.nl
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - superelf-test
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.superelf-api-test.rule=Host(`superelf-test.yorickteriele.nl`) && (PathPrefix(`/api`) || PathPrefix(`/hub`))"
+      - "traefik.http.routers.superelf-api-test.entrypoints=websecure"
+      - "traefik.http.routers.superelf-api-test.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.superelf-api-test.priority=10"
+      - "traefik.http.services.superelf-api-test.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/diagnostics/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend-test:
+    build:
+      context: ./Superelf.Web
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: /api
+        REACT_APP_ENVIRONMENT: test
+    container_name: superelf-frontend-test
+    restart: unless-stopped
+    networks:
+      - superelf-test
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.superelf-frontend-test.rule=Host(`superelf-test.yorickteriele.nl`)"
+      - "traefik.http.routers.superelf-frontend-test.entrypoints=websecure"
+      - "traefik.http.routers.superelf-frontend-test.tls.certresolver=letsencrypt"
+      - "traefik.http.services.superelf-frontend-test.loadbalancer.server.port=3000"
+    depends_on:
+      - api-test
+
+volumes:
+  postgres_test_data:
+    external: true
+    name: superelf-test_postgres_test_data
+
+networks:
+  superelf-test:
+    driver: bridge
+  dokploy-network:
+    external: true
+    name: dokploy-network
