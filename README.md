@@ -177,7 +177,7 @@ Our application needs consistent behavior across environments:
 Make sure you have the following installed:
 
 - **.NET SDK:** 8.0 or later
-- **Node.js:** v18.0 or later
+- **Node.js:** v22.22 or v24.15 or later (LTS)
 - **npm:** v9.0 or later
 - **Docker:** v24.0 or later
 - **PostgreSQL:** v15.0 or later (if running without Docker)
@@ -271,7 +271,7 @@ Services will be available at:
 
 ### Testing
 
-Superelf uses xUnit for backend testing and Jest for frontend testing. Run the test suite with:
+Superelf uses xUnit for backend testing and Vitest for frontend testing. Run the test suite with:
 
 **Backend Tests:**
 
