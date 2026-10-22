@@ -235,6 +235,12 @@ main {
   font-weight: 500;
 }
 
+/* The semantic colours are light on this theme, so badges on them take dark ink instead of Bootstrap's white. */
+.badge:is(.bg-primary, .bg-secondary, .bg-success, .bg-info, .bg-warning, .bg-danger) {
+  --bs-badge-color: var(--se-accent-ink);
+  color: var(--se-accent-ink);
+}
+
 .btn {
   border-radius: 6px;
   padding: 0.5rem 1.25rem;
