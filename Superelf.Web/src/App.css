@@ -1,49 +1,71 @@
 /* Bootstrap Icons */
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css");
 
-/* Custom Variables - Modern Dark Theme */
-:root {
-  /* Primary brand color - vibrant blue */
-  --bs-primary: #4895ef;
-  --bs-primary-rgb: 72, 149, 239;
-  
-  /* Secondary color - deep purple */
-  --bs-secondary: #7b2cbf;
-  --bs-secondary-rgb: 123, 44, 191;
-  
-  /* Success color - teal */
-  --bs-success: #2ec4b6;
-  --bs-success-rgb: 46, 196, 182;
-  
-  /* Info color - light blue */
-  --bs-info: #56cfe1;
-  --bs-info-rgb: 86, 207, 225;
-  
-  /* Warning color - amber */
-  --bs-warning: #f9c74f;
-  --bs-warning-rgb: 249, 199, 79;
-  
-  /* Danger color - vibrant red */
-  --bs-danger: #e63946;
-  --bs-danger-rgb: 230, 57, 70;
-  
-  /* Light color - darker for dark theme */
-  --bs-light: #343a40;
-  --bs-light-rgb: 52, 58, 64;
-  
-  /* Dark color - lighter for dark theme */
-  --bs-dark: #f8f9fa;
-  --bs-dark-rgb: 248, 249, 250;
-  
-  /* Dark theme specific colors */
-  --bs-body-bg: #121212;
-  --bs-body-color: #e9ecef;
-  --bs-body-bg-rgb: 18, 18, 18;
-  --bs-body-color-rgb: 233, 236, 239;
-  --bs-card-bg: #1e1e1e;
-  --bs-border-color: #343a40;
-  
-  /* Add dark mode to bootstrap */
+/*
+ * Olive night, as in Secretary and ReadAloud: olive-black paper, cream ink, brass accent.
+ * Instrument Sans for UI text, Fraunces for display headings.
+ * Bootstrap sets its dark-mode variables on [data-bs-theme=dark] (the body), so we override them there too.
+ */
+:root,
+[data-bs-theme=dark] {
+  --se-paper: #181c15;
+  --se-paper-raised: #20251c;
+  --se-paper-sunk: #2a3024;
+  --se-field: #1c2018;
+  --se-ink: #ebe1cf;
+  --se-ink-soft: #a8a48f;
+  --se-rule: #353d2c;
+  --se-accent: #c9a06a;
+  --se-accent-hover: #d8b27e;
+  --se-accent-ink: #1a1609;
+
+  --bs-primary: var(--se-accent);
+  --bs-primary-rgb: 201, 160, 106;
+  --bs-primary-text-emphasis: var(--se-accent-hover);
+  --bs-primary-bg-subtle: #2f2a1c;
+  --bs-primary-border-subtle: #5a4a2c;
+
+  --bs-secondary: #8f8b78;
+  --bs-secondary-rgb: 143, 139, 120;
+
+  --bs-success: #9cc08a;
+  --bs-success-rgb: 156, 192, 138;
+
+  --bs-info: #8fc1d4;
+  --bs-info-rgb: 143, 193, 212;
+
+  --bs-warning: #e0b464;
+  --bs-warning-rgb: 224, 180, 100;
+
+  --bs-danger: #e8907e;
+  --bs-danger-rgb: 232, 144, 126;
+
+  --bs-dark: var(--se-paper);
+  --bs-dark-rgb: 24, 28, 21;
+
+  --bs-body-bg: var(--se-paper);
+  --bs-body-bg-rgb: 24, 28, 21;
+  --bs-body-color: var(--se-ink);
+  --bs-body-color-rgb: 235, 225, 207;
+  --bs-emphasis-color: #f6efe2;
+  --bs-emphasis-color-rgb: 246, 239, 226;
+  --bs-heading-color: var(--se-ink);
+  --bs-secondary-color: var(--se-ink-soft);
+  --bs-secondary-color-rgb: 168, 164, 143;
+  --bs-secondary-bg: var(--se-paper-sunk);
+  --bs-secondary-bg-rgb: 42, 48, 36;
+  --bs-tertiary-bg: var(--se-paper-raised);
+  --bs-tertiary-bg-rgb: 32, 37, 28;
+  --bs-border-color: var(--se-rule);
+  --bs-card-bg: var(--se-paper-raised);
+  --bs-link-color: var(--se-accent);
+  --bs-link-color-rgb: 201, 160, 106;
+  --bs-link-hover-color: var(--se-accent-hover);
+  --bs-link-hover-color-rgb: 216, 178, 126;
+
+  --bs-font-sans-serif: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --se-font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+
   color-scheme: dark;
 }
 
@@ -51,12 +73,37 @@
 body {
   background-color: var(--bs-body-bg);
   color: var(--bs-body-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--bs-font-sans-serif);
+}
+
+h1, h2, h3, h4, h5,
+.h1, .h2, .h3, .h4, .h5,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6,
+.navbar-brand {
+  font-family: var(--se-font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: rgba(201, 160, 106, 0.35);
+}
+
+:focus-visible {
+  outline: 2px solid var(--se-accent);
+  outline-offset: 2px;
+}
+
+/* Text on an accent-coloured surface: dark ink, as white is unreadable on brass. */
+.text-on-accent {
+  color: var(--se-accent-ink) !important;
+}
+
+.text-on-accent :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
+  color: inherit;
 }
 
 main {
-  min-height: calc(100vh - 56px - 56px); /* Subtract navbar and footer heights */
   padding: 1rem 0;
 }
 
@@ -64,24 +111,24 @@ main {
 .card {
   background-color: var(--bs-card-bg);
   border-color: var(--bs-border-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 16px 40px -20px rgba(0, 0, 0, 0.6);
+  border-radius: 0.75rem;
 }
 
 .card-header, .card-footer {
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: var(--se-paper-sunk);
   border-color: var(--bs-border-color);
 }
 
 /* Form Styles */
 .form-control, .form-select {
-  background-color: #2b2b2b;
-  border-color: #444;
+  background-color: var(--se-field);
+  border-color: var(--se-rule);
   color: var(--bs-body-color);
 }
 
 .form-control:focus, .form-select:focus {
-  background-color: #2b2b2b;
+  background-color: var(--se-field);
   border-color: var(--bs-primary);
   box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
   color: var(--bs-body-color);
@@ -89,24 +136,45 @@ main {
 
 /* Button Overrides */
 .btn-primary {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
+  --bs-btn-color: var(--se-accent-ink);
+  --bs-btn-bg: var(--se-accent);
+  --bs-btn-border-color: var(--se-accent);
+  --bs-btn-hover-color: var(--se-accent-ink);
+  --bs-btn-hover-bg: var(--se-accent-hover);
+  --bs-btn-hover-border-color: var(--se-accent-hover);
+  --bs-btn-active-color: var(--se-accent-ink);
+  --bs-btn-active-bg: var(--se-accent-hover);
+  --bs-btn-active-border-color: var(--se-accent-hover);
+  --bs-btn-disabled-color: var(--se-accent-ink);
+  --bs-btn-disabled-bg: var(--se-accent);
+  --bs-btn-disabled-border-color: var(--se-accent);
 }
 
-.btn-primary:hover {
-  background-color: #3d7ecc;
-  border-color: #3d7ecc;
+.btn-outline-primary {
+  --bs-btn-color: var(--se-accent);
+  --bs-btn-border-color: var(--se-accent);
+  --bs-btn-hover-color: var(--se-accent-ink);
+  --bs-btn-hover-bg: var(--se-accent);
+  --bs-btn-hover-border-color: var(--se-accent);
+  --bs-btn-active-color: var(--se-accent-ink);
+  --bs-btn-active-bg: var(--se-accent-hover);
+  --bs-btn-active-border-color: var(--se-accent-hover);
 }
 
 .btn-outline-light {
-  color: #e9ecef;
-  border-color: #6c757d;
+  --bs-btn-color: var(--se-ink);
+  --bs-btn-border-color: var(--se-rule);
+  --bs-btn-hover-color: var(--se-ink);
+  --bs-btn-hover-bg: var(--se-paper-sunk);
+  --bs-btn-hover-border-color: var(--se-ink-soft);
+  --bs-btn-active-color: var(--se-ink);
+  --bs-btn-active-bg: var(--se-paper-sunk);
+  --bs-btn-active-border-color: var(--se-ink-soft);
 }
 
-.btn-outline-light:hover {
-  background-color: #343a40;
-  color: #ffffff;
-  border-color: #6c757d;
+.form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
 }
 
 /* Table Styles */
@@ -116,7 +184,7 @@ main {
 }
 
 .table-striped > tbody > tr:nth-of-type(odd) > * {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(235, 225, 207, 0.04);
   color: var(--bs-body-color);
 }
 
@@ -127,8 +195,10 @@ main {
 
 /* Navbar Styles */
 .navbar-dark {
-  background-color: #1a1a1a !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background-color: rgba(24, 28, 21, 0.92) !important;
+  border-bottom: 1px solid var(--se-rule);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* List Group Styles */
@@ -151,11 +221,11 @@ main {
 
 /* Gradient Backgrounds */
 .bg-gradient-dark {
-  background: linear-gradient(135deg, #1a1a1a 0%, #303030 100%);
+  background: linear-gradient(135deg, var(--se-paper) 0%, var(--se-paper-sunk) 100%);
 }
 
 .bg-gradient-primary {
-  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+  background: linear-gradient(135deg, var(--se-accent) 0%, #8f6a37 100%);
 }
 
 /* Modern UI Elements */
@@ -163,6 +233,12 @@ main {
   padding: 0.5em 0.8em;
   border-radius: 6px;
   font-weight: 500;
+}
+
+/* The semantic colours are light on this theme, so badges on them take dark ink instead of Bootstrap's white. */
+.badge:is(.bg-primary, .bg-secondary, .bg-success, .bg-info, .bg-warning, .bg-danger) {
+  --bs-badge-color: var(--se-accent-ink);
+  color: var(--se-accent-ink);
 }
 
 .btn {
@@ -184,10 +260,10 @@ a:not(.btn):hover,
 
 /* Glass Morphism Effect */
 .card.glass {
-  background: rgba(30, 30, 30, 0.7);
+  background: rgba(32, 37, 28, 0.7);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--se-rule);
 }
 
 /* Pill Badges */
@@ -205,14 +281,14 @@ a:not(.btn):hover,
   align-items: center;
   justify-content: center;
   background-color: var(--bs-primary);
-  color: white;
+  color: var(--se-accent-ink);
   font-weight: bold;
 }
 
 /* Progress Bar */
 .progress {
   height: 0.6rem;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--se-paper-sunk);
 }
 
 .progress-bar {
@@ -221,8 +297,8 @@ a:not(.btn):hover,
 
 /* Custom Switch */
 .form-switch .form-check-input {
-  background-color: #444;
-  border-color: #666;
+  background-color: var(--se-paper-sunk);
+  border-color: var(--se-rule);
 }
 
 .form-switch .form-check-input:checked {
@@ -231,13 +307,13 @@ a:not(.btn):hover,
 }
 .card {
   border-radius: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--se-rule);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 12px 28px -10px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Button Styles */
@@ -246,16 +322,6 @@ a:not(.btn):hover,
   padding: 0.5rem 1rem;
   font-weight: 500;
   transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
-}
-
-.btn-primary:hover {
-  background-color: var(--bs-secondary);
-  border-color: var(--bs-secondary);
 }
 
 /* Navbar Styles */
@@ -273,7 +339,7 @@ a:not(.btn):hover,
 }
 
 .bg-gradient-primary {
-  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+  background: linear-gradient(135deg, var(--se-accent) 0%, #8f6a37 100%);
 }
 
 /* Animation */
@@ -290,4 +356,12 @@ a:not(.btn):hover,
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.feature-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -62,7 +62,7 @@ const Register: React.FC = () => {
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card">
-            <div className="card-header bg-primary text-white text-center">
+            <div className="card-header bg-primary text-on-accent text-center">
               <h4>Register</h4>
             </div>
             <div className="card-body">

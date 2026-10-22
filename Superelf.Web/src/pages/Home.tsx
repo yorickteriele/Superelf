@@ -41,7 +41,7 @@ const Home: React.FC = () => {
           )}
         </div>
         <div className="col-lg-6">
-          <div className="bg-gradient-primary p-5 text-center text-white rounded-3 shadow">
+          <div className="bg-gradient-primary p-5 text-center text-on-accent rounded-3 shadow">
             <i className="bi bi-trophy-fill display-1 mb-3"></i>
             <h2 className="h1 mb-3">2025 Season</h2>
             <p className="lead">The competition is heating up! Join now to compete with friends.</p>
@@ -59,7 +59,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-people-fill text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Create or Join Pools</h3>
@@ -73,7 +73,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-person-plus-fill text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Select Your Players</h3>
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-graph-up-arrow text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Compete & Win</h3>
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <div className="row mt-5 pt-5">
         <div className="col-12">
-          <div className="bg-light p-5 rounded-3 text-center shadow-sm">
+          <div className="bg-body-tertiary p-5 rounded-3 text-center shadow-sm">
             <h2 className="fw-bold mb-3">Ready to Become a Champion?</h2>
             <p className="mb-4">Join thousands of players competing for glory in SuperElf fantasy football.</p>
             {!user ? (

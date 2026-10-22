@@ -32,10 +32,10 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark shadow sticky-top" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #282828 100%)' }}>
+    <nav className="navbar navbar-expand-lg navbar-dark sticky-top">
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">
-          <i className="bi bi-trophy-fill me-2"></i>
+          <i className="bi bi-trophy-fill text-primary me-2"></i>
           Superelf
         </Link>
         <button 
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
               <>
                 <li className="nav-item">
                   <Link 
-                    className="nav-link btn btn-outline-light me-2 px-3" 
+                    className="btn btn-outline-light me-lg-2 mb-2 mb-lg-0" 
                     to="/login"
                   >
                     <i className="bi bi-box-arrow-in-right me-1"></i>
@@ -98,7 +98,7 @@ const Navbar: React.FC = () => {
                 </li>
                 <li className="nav-item">
                   <Link 
-                    className="nav-link btn btn-light text-primary px-3" 
+                    className="btn btn-primary" 
                     to="/register"
                   >
                     <i className="bi bi-person-plus me-1"></i>

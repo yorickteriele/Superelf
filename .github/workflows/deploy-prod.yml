@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build and Prepare
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pr-server]
     
     steps:
     - name: Checkout code
@@ -168,7 +168,7 @@ jobs:
     
   unit-tests:
     name: Run Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pr-server]
     needs: [build]
     
     steps:
@@ -185,7 +185,7 @@ jobs:
 
   deploy-prod:
     name: Deploy to Production Environment
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pr-server]
     needs: [build, unit-tests]
     
     steps:
