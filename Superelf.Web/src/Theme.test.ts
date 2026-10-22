@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
+import { contrast } from './testing/contrast';
 
 // Read from disk: Vitest strips CSS content, even for ?raw imports.
 const appCss = readFileSync(`${__dirname}/App.css`, 'utf8');
@@ -19,19 +20,6 @@ test('Navbar and Footer take their colours from the theme, not inline hex values
   expect(navbar).not.toMatch(/#[0-9a-fA-F]{3,6}\b/);
   expect(footer).not.toMatch(/#[0-9a-fA-F]{3,6}\b/);
 });
-
-// WCAG relative luminance and contrast ratio for #rrggbb colours.
-const luminance = (hex: string) => {
-  const [r, g, b] = [1, 3, 5].map(i => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
-const contrast = (a: string, b: string) => {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-};
 
 // The semantic colours are light on this theme; Bootstrap's white badge text is unreadable on them.
 test('badges on semantic backgrounds use dark ink with at least 4.5:1 contrast', () => {
