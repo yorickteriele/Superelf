@@ -41,7 +41,7 @@ const Home: React.FC = () => {
           )}
         </div>
         <div className="col-lg-6">
-          <div className="bg-gradient-primary p-5 text-center text-white rounded-3 shadow">
+          <div className="bg-gradient-primary p-5 text-center text-on-accent rounded-3 shadow">
             <i className="bi bi-trophy-fill display-1 mb-3"></i>
             <h2 className="h1 mb-3">2025 Season</h2>
             <p className="lead">The competition is heating up! Join now to compete with friends.</p>
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <div className="row mt-5 pt-5">
         <div className="col-12">
-          <div className="bg-light p-5 rounded-3 text-center shadow-sm">
+          <div className="bg-body-tertiary p-5 rounded-3 text-center shadow-sm">
             <h2 className="fw-bold mb-3">Ready to Become a Champion?</h2>
             <p className="mb-4">Join thousands of players competing for glory in SuperElf fantasy football.</p>
             {!user ? (

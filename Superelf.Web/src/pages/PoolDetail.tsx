@@ -426,7 +426,7 @@ const PoolDetail: React.FC = () => {
           
           {/* Pool Owner Controls */}
           {isOwner && (
-            <div className="mb-3 p-3 bg-light rounded">
+            <div className="mb-3 p-3 bg-body-tertiary rounded">
               <h6 className="mb-2">Pool Settings</h6>
               <div className="form-check form-switch">
                 <input 

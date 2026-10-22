@@ -4,9 +4,9 @@
   margin: 0 auto;
   padding: 20px;
   color: #fff;
-  background: linear-gradient(135deg, #0f1419, #1a2332);
+  background: linear-gradient(135deg, #181c15, #20251c);
   min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: inherit;
 }
 
 /* Header Section */
@@ -75,31 +75,31 @@
 }
 
 .selection-container .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(201, 160, 106, 0.4);
 }
 
 .selection-container .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 8px 25px rgba(201, 160, 106, 0.6);
 }
 
 .selection-container .btn-success {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #6f9a5c, #4f7a3f);
   color: white;
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 4px 15px rgba(156, 192, 138, 0.4);
 }
 
 .selection-container .btn-warning {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: linear-gradient(135deg, #e0b464, #c97a4a);
   color: white;
-  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+  box-shadow: 0 4px 15px rgba(224, 180, 100, 0.4);
 }
 
 .selection-container .btn-warning:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(240, 147, 251, 0.6);
+  box-shadow: 0 8px 25px rgba(224, 180, 100, 0.6);
 }
 
 /* Selection Status */
@@ -138,7 +138,7 @@
 .status-value {
   font-size: 24px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -156,7 +156,7 @@
 
 .selection-container .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #4facfe, #00f2fe);
+  background: linear-gradient(90deg, #6f9a5c, #4f7a3f);
   transition: width 0.5s ease;
   position: relative;
   overflow: hidden;
@@ -342,8 +342,8 @@
 }
 
 .player-slot.selected {
-  border: 3px solid #4facfe;
-  box-shadow: 0 0 25px rgba(79, 172, 254, 0.6);
+  border: 3px solid #6f9a5c;
+  box-shadow: 0 0 25px rgba(156, 192, 138, 0.6);
 }
 
 .player-slot.joker {
@@ -367,7 +367,7 @@
   height: 90px;
   border-radius: 50%;
   object-fit: cover;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -411,7 +411,7 @@
   font-size: 28px;
   font-weight: bold;
   margin: 40px 0 20px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -443,7 +443,7 @@
   text-transform: uppercase;
   font-size: 16px;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #6f9a5c, #4f7a3f);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -471,7 +471,7 @@
 }
 
 .selection-container .modal-content {
-  background: linear-gradient(135deg, #1a2332, #0f1419);
+  background: linear-gradient(135deg, #20251c, #181c15);
   width: 95%;
   max-width: 1000px;
   max-height: 85vh;
@@ -501,7 +501,7 @@
 .selection-container .modal-title {
   font-size: 28px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -584,7 +584,7 @@
 }
 
 .submit-button {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #6f9a5c, #4f7a3f);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -599,7 +599,7 @@
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+  box-shadow: 0 8px 25px rgba(156, 192, 138, 0.6);
 }
 
 .submit-button:disabled {
@@ -626,7 +626,7 @@
 }
 
 .player-table th {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   font-weight: bold;
   color: #fff;
   text-transform: uppercase;
@@ -648,8 +648,8 @@
 }
 
 .player-row.selected {
-  background: rgba(79, 172, 254, 0.2);
-  border-left: 4px solid #4facfe;
+  background: rgba(156, 192, 138, 0.2);
+  border-left: 4px solid #6f9a5c;
 }
 
 .player-row.joker {
@@ -658,7 +658,7 @@
 }
 
 .select-button {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -673,13 +673,13 @@
 }
 
 .select-button.selected {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+  background: linear-gradient(135deg, #6f9a5c, #4f7a3f);
+  box-shadow: 0 4px 15px rgba(156, 192, 138, 0.4);
 }
 
 .select-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 6px 20px rgba(201, 160, 106, 0.5);
 }
 
 .joker-button {
@@ -763,7 +763,7 @@
 }
 
 .selection-container .text-primary {
-  color: #667eea !important;
+  color: #c9a06a !important;
 }
 
 .selection-container .visually-hidden {
@@ -904,7 +904,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #96703d, #6b4c24);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1031,8 +1031,8 @@
 
 .club-filter select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+  border-color: #c9a06a;
+  box-shadow: 0 0 0 2px rgba(201, 160, 106, 0.3);
 }
 
 /* Remove Player Button */

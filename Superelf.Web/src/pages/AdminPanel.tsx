@@ -160,7 +160,7 @@ const AdminPanel: React.FC = () => {
           {/* Statistics Cards */}
           <div className="row mb-4">
             <div className="col-md-3 col-sm-6 mb-3">
-              <div className="card bg-primary text-white">
+              <div className="card bg-primary text-on-accent">
                 <div className="card-body">
                   <div className="d-flex justify-content-between">
                     <div>
@@ -175,7 +175,7 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
             <div className="col-md-3 col-sm-6 mb-3">
-              <div className="card bg-success text-white">
+              <div className="card bg-success text-on-accent">
                 <div className="card-body">
                   <div className="d-flex justify-content-between">
                     <div>
@@ -190,7 +190,7 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
             <div className="col-md-3 col-sm-6 mb-3">
-              <div className="card bg-info text-white">
+              <div className="card bg-info text-on-accent">
                 <div className="card-body">
                   <div className="d-flex justify-content-between">
                     <div>
@@ -205,7 +205,7 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
             <div className="col-md-3 col-sm-6 mb-3">
-              <div className="card bg-warning text-white">
+              <div className="card bg-warning text-on-accent">
                 <div className="card-body">
                   <div className="d-flex justify-content-between">
                     <div>
@@ -410,7 +410,7 @@ const AdminPanel: React.FC = () => {
   );
 
   return (
-    <div className="min-vh-100 bg-light">
+    <div className="min-vh-100 bg-body-tertiary">
       {/* Alerts */}
       {error && (
         <div className="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">

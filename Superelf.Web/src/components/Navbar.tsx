@@ -32,10 +32,10 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark shadow sticky-top" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #282828 100%)' }}>
+    <nav className="navbar navbar-expand-lg navbar-dark sticky-top">
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">
-          <i className="bi bi-trophy-fill me-2"></i>
+          <i className="bi bi-trophy-fill text-primary me-2"></i>
           Superelf
         </Link>
         <button 
