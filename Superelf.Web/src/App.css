@@ -56,7 +56,6 @@ body {
 }
 
 main {
-  min-height: calc(100vh - 56px - 56px); /* Subtract navbar and footer heights */
   padding: 1rem 0;
 }
 
@@ -290,4 +289,12 @@ a:not(.btn):hover,
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.feature-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -59,7 +59,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-people-fill text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Create or Join Pools</h3>
@@ -73,7 +73,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-person-plus-fill text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Select Your Players</h3>
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
         <div className="col-md-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center p-4">
-              <div className="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+              <div className="feature-icon rounded-circle bg-primary bg-opacity-10 mb-3">
                 <i className="bi bi-graph-up-arrow text-primary fs-1"></i>
               </div>
               <h3 className="card-title h4">Compete & Win</h3>

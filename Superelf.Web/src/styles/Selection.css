@@ -28,7 +28,7 @@
   align-items: center;
 }
 
-.btn {
+.selection-container .btn {
   padding: 12px 24px;
   border-radius: 8px;
   border: none;
@@ -46,7 +46,7 @@
   overflow: hidden;
 }
 
-.btn::before {
+.selection-container .btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -57,47 +57,47 @@
   transition: left 0.5s;
 }
 
-.btn:hover::before {
+.selection-container .btn:hover::before {
   left: 100%;
 }
 
-.btn-outline-light {
+.selection-container .btn-outline-light {
   background: transparent;
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.btn-outline-light:hover {
+.selection-container .btn-outline-light:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
 }
 
-.btn-primary {
+.selection-container .btn-primary {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.btn-primary:hover:not(:disabled) {
+.selection-container .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
 }
 
-.btn-success {
+.selection-container .btn-success {
   background: linear-gradient(135deg, #4facfe, #00f2fe);
   color: white;
   box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
 }
 
-.btn-warning {
+.selection-container .btn-warning {
   background: linear-gradient(135deg, #f093fb, #f5576c);
   color: white;
   box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
 }
 
-.btn-warning:hover:not(:disabled) {
+.selection-container .btn-warning:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(240, 147, 251, 0.6);
 }
@@ -154,7 +154,7 @@
   position: relative;
 }
 
-.progress-bar {
+.selection-container .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #4facfe, #00f2fe);
   transition: width 0.5s ease;
@@ -162,7 +162,7 @@
   overflow: hidden;
 }
 
-.progress-bar::after {
+.selection-container .progress-bar::after {
   content: '';
   position: absolute;
   top: 0;
@@ -470,7 +470,7 @@
   to { opacity: 1; }
 }
 
-.modal-content {
+.selection-container .modal-content {
   background: linear-gradient(135deg, #1a2332, #0f1419);
   width: 95%;
   max-width: 1000px;
@@ -489,7 +489,7 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-.modal-header {
+.selection-container .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -498,7 +498,7 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-title {
+.selection-container .modal-title {
   font-size: 28px;
   font-weight: bold;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -723,7 +723,7 @@
 }
 
 /* Alert messages */
-.alert {
+.selection-container .alert {
   padding: 20px;
   margin: 20px 0;
   border-radius: 12px;
@@ -738,20 +738,20 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-.alert-error {
+.selection-container .alert-error {
   background: linear-gradient(135deg, rgba(220, 53, 69, 0.9), rgba(200, 35, 51, 0.9));
   color: white;
   border-color: rgba(220, 53, 69, 0.3);
 }
 
-.alert-success {
+.selection-container .alert-success {
   background: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(30, 147, 49, 0.9));
   color: white;
   border-color: rgba(40, 167, 69, 0.3);
 }
 
 /* Loading spinner */
-.spinner-border {
+.selection-container .spinner-border {
   display: inline-block;
   width: 3rem;
   height: 3rem;
@@ -762,11 +762,11 @@
   animation: spinner-border 1s linear infinite;
 }
 
-.text-primary {
+.selection-container .text-primary {
   color: #667eea !important;
 }
 
-.visually-hidden {
+.selection-container .visually-hidden {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -784,7 +784,7 @@
   }
 }
 
-.text-center {
+.selection-container .text-center {
   text-align: center;
 }
 
@@ -914,7 +914,7 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.d-none {
+.selection-container .d-none {
   display: none !important;
 }
 
